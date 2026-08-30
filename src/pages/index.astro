@@ -1,0 +1,684 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ArticleCard from '../components/ArticleCard.astro';
+import Thumb from '../components/Thumb.astro';
+import ScoreBadge from '../components/ScoreBadge.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { SITE, CATEGORY_MAP, NEWSLETTER_ACTION } from '../consts';
+import {
+  getAllPosts,
+  getSection,
+  pickFeatured,
+  gamesCovered,
+  formatDate,
+  readingMinutes,
+} from '../lib/posts';
+
+const all = await getAllPosts();
+
+// Spotlight: one lead plus three beside it.
+const spotlight = pickFeatured(all, 4);
+const [lead, ...side] = spotlight;
+const leadCat = lead ? CATEGORY_MAP[lead.category] : null;
+
+const games = gamesCovered(all).slice(0, 8);
+
+const guides = (await getSection('guides')).slice(0, 4);
+const news = (await getSection('news')).slice(0, 4);
+const reviews = (await getSection('reviews')).slice(0, 3);
+
+const trending = all.slice(0, 5);
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: SITE.name,
+    url: SITE.url,
+    description: SITE.description,
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: SITE.name,
+    url: SITE.url,
+    logo: `${SITE.url}/logo.png`,
+  },
+];
+---
+
+<BaseLayout title={SITE.name} jsonLd={jsonLd}>
+  {/* ============ Featured ============ */}
+  {
+    lead && (
+      <section class="wrap block" aria-labelledby="sec-featured">
+        <div class="section-head">
+          <h2 id="sec-featured">Featured</h2>
+        </div>
+
+        <div class="spotlight">
+          <a class="feature" href={lead.url} data-cat={lead.category}>
+            <Thumb
+              src={lead.data.cover}
+              alt=""
+              seed={lead.id}
+              label={(lead.data as any).game ?? lead.data.title}
+              eager={true}
+              width={1200}
+              height={675}
+            />
+            <span class="tag tag--solid">{leadCat?.label}</span>
+            <h3>{lead.data.title}</h3>
+            <p>{lead.data.description}</p>
+            <span class="f-meta">
+              {lead.data.author}
+              <i class="dot" />
+              {formatDate(lead.data.pubDate)}
+              <i class="dot" />
+              {readingMinutes(lead.body)} min
+            </span>
+          </a>
+
+          <div class="side">
+            {side.map((p) => (
+              <a class="mini" href={p.url} data-cat={p.category}>
+                <span class="m-thumb">
+                  <Thumb
+                    src={p.data.cover}
+                    alt=""
+                    seed={p.id}
+                    label={(p.data as any).game ?? p.data.title}
+                    width={240}
+                    height={170}
+                  />
+                </span>
+                <span class="m-body">
+                  <b>{p.data.title}</b>
+                  <span class="m-meta">
+                    {CATEGORY_MAP[p.category].label}
+                    <i class="dot" />
+                    {readingMinutes(p.body)} min
+                  </span>
+                </span>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  {/* ============ Games covered ============ */}
+  {
+    games.length > 0 && (
+      <section class="wrap block" aria-labelledby="sec-games">
+        <div class="section-head">
+          <h2 id="sec-games">Games covered</h2>
+          <a class="more" href="/games/">All games &rsaquo;</a>
+        </div>
+
+        <div class="grid grid--4 games">
+          {games.map((g) => (
+            <a class="game-card" href={`/games/${g.slug}/`}>
+              <Thumb src={g.cover} alt="" seed={g.slug} label={g.name} width={400} height={533} />
+              <span class="g-name">{g.name}</span>
+              {/* Real counts, and the section they sit in. A row of cards that
+                  all read "3 articles" is the tell of a generated page. */}
+              <span class="g-count">
+                {g.count} {g.count === 1 ? 'article' : 'articles'}
+                <i class="dot" />
+                {CATEGORY_MAP[g.sections[0] as keyof typeof CATEGORY_MAP].label}
+              </span>
+            </a>
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  {/* ============ Feed + rail ============ */}
+  <div class="wrap shell block">
+    <div class="feed">
+      {
+        guides.length > 0 && (
+          <section class="section" data-cat="guides" aria-labelledby="sec-guides">
+            <div class="section-head">
+              <h2 id="sec-guides">Latest guides</h2>
+              <a class="more" href="/guides/">View all &rsaquo;</a>
+            </div>
+            <div class="grid grid--2">
+              {guides.map((p) => (
+                <ArticleCard post={p} showExcerpt={true} />
+              ))}
+            </div>
+          </section>
+        )
+      }
+
+      <AdSlot id="home-infeed-1" format="inline" class="infeed-ad" />
+
+      {/* The one block that is not a card grid. A review carries a number, and
+          a number wants a scoreboard rather than another thumbnail. */}
+      {
+        reviews.length > 0 && (
+          <section class="section" data-cat="reviews" aria-labelledby="sec-reviews">
+            <div class="section-head">
+              <h2 id="sec-reviews">Latest reviews</h2>
+              <a class="more" href="/reviews/">All reviews &rsaquo;</a>
+            </div>
+            <ol class="scoreboard">
+              {reviews.map((p) => (
+                <li>
+                  <ScoreBadge score={(p.data as any).score} />
+                  <div class="sb-body">
+                    <span class="sb-game">{(p.data as any).game}</span>
+                    <h3>
+                      <a href={p.url} class="card-link">
+                        {p.data.title}
+                      </a>
+                    </h3>
+                    <p>{(p.data as any).verdict}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </section>
+        )
+      }
+
+      {
+        news.length > 0 && (
+          <section class="section" data-cat="news" aria-labelledby="sec-news">
+            <div class="section-head">
+              <h2 id="sec-news">Latest news</h2>
+              <a class="more" href="/news/">All news &rsaquo;</a>
+            </div>
+            <div class="grid grid--2">
+              {news.map((p) => (
+                <ArticleCard post={p} showExcerpt={true} />
+              ))}
+            </div>
+          </section>
+        )
+      }
+    </div>
+
+    <aside class="rail" aria-label="Sidebar">
+      <AdSlot id="home-rail-rect" format="rect" />
+
+      <section class="panel">
+        <h2 class="panel-head">Trending now</h2>
+        <ol class="trending">
+          {
+            trending.map((p, i) => (
+              <li>
+                <span class="rank" aria-hidden="true">{i + 1}</span>
+                <span class="t-body">
+                  <a href={p.url}>{p.data.title}</a>
+                  <span class="t-meta">
+                    {CATEGORY_MAP[p.category].label}
+                    <i class="dot" />
+                    {readingMinutes(p.body)} min
+                  </span>
+                </span>
+              </li>
+            ))
+          }
+        </ol>
+      </section>
+    </aside>
+  </div>
+
+  {/* ============ Newsletter ============ */}
+  <div class="wrap block">
+    <section class="signup-band">
+      <div class="sb-copy">
+        <span class="sb-eyebrow">Newsletter</span>
+        <h2>The CritVolt Brief</h2>
+        <p>New guides, reviews and hardware price drops, straight to your inbox.</p>
+      </div>
+
+      <div class="sb-cta">
+        {/* Posts to the same endpoint as /signup - one NEWSLETTER_ACTION for
+            the whole site, so this field is never a decoration. */}
+        <form class="sb-form" action={NEWSLETTER_ACTION} method="post">
+          <label class="sr-only" for="band-email">Email address</label>
+          <input
+            id="band-email"
+            type="email"
+            name="email"
+            required
+            placeholder="you@example.com"
+            autocomplete="email"
+          />
+          <button class="btn btn--primary" type="submit">Subscribe</button>
+        </form>
+        <span class="sb-note">Free. Unsubscribe any time.</span>
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .block {
+    margin-block: 40px;
+  }
+  .feed {
+    min-width: 0;
+  }
+  .infeed-ad {
+    margin-block: 34px;
+  }
+
+  /* ---------- Featured ---------- */
+  .spotlight {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    gap: 16px;
+    align-items: stretch;
+  }
+
+  .feature {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    min-height: 380px;
+    padding: 28px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    clip-path: polygon(var(--notch) 0, 100% 0, 100% 100%, 0 100%, 0 var(--notch));
+    transition: border-color 0.18s var(--ease), box-shadow 0.22s var(--ease);
+  }
+  .feature:hover {
+    border-color: var(--c);
+    box-shadow:
+      0 18px 40px -16px rgba(0, 0, 0, 0.8),
+      0 0 28px -10px color-mix(in srgb, var(--c) 55%, transparent);
+  }
+  /* The same top-edge wipe the cards and tiles use. */
+  .feature::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3px;
+    z-index: 3;
+    background: var(--c);
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+    transition: transform 0.35s var(--ease);
+  }
+  .feature:hover::before {
+    transform: scaleX(1);
+  }
+  .feature > :global(.thumb),
+  .feature > :global(img) {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s var(--ease), filter 0.3s var(--ease);
+  }
+  .feature:hover > :global(.thumb),
+  .feature:hover > :global(img) {
+    transform: scale(1.04);
+    filter: brightness(1.08) saturate(1.05);
+  }
+  .feature::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(
+      rgba(0, 0, 0, 0) 30%,
+      rgba(8, 8, 11, 0.55) 62%,
+      rgba(8, 8, 11, 0.96) 96%
+    );
+  }
+  .feature .tag,
+  .feature h3,
+  .feature p,
+  .feature .f-meta {
+    position: relative;
+    z-index: 2;
+  }
+  .feature .tag {
+    align-self: flex-start;
+  }
+  .feature h3 {
+    margin: 12px 0 8px;
+    font-size: clamp(1.5rem, 2.4vw, 2.1rem);
+    line-height: 1.1;
+    max-width: 26ch;
+    color: #fff;
+  }
+  .feature:hover h3 {
+    color: var(--c);
+  }
+  .feature p {
+    max-width: 48ch;
+    margin-bottom: 14px;
+    color: var(--text-2);
+    font-size: 0.95rem;
+  }
+
+  .f-meta,
+  .m-meta,
+  .t-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-display);
+    font-size: 0.74rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+  }
+
+  .side {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .mini {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    transition:
+      border-color 0.18s var(--ease),
+      transform 0.18s var(--ease),
+      box-shadow 0.18s var(--ease);
+  }
+  .mini:hover {
+    border-color: var(--c);
+    transform: translateX(4px);
+    box-shadow:
+      0 10px 22px -12px rgba(0, 0, 0, 0.7),
+      0 0 18px -8px color-mix(in srgb, var(--c) 50%, transparent);
+  }
+  .m-thumb {
+    flex: none;
+    width: 92px;
+    height: 66px;
+    overflow: hidden;
+    background: var(--surface-2);
+  }
+  .m-thumb > :global(.thumb),
+  .m-thumb > :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s var(--ease), filter 0.25s var(--ease);
+  }
+  .mini:hover .m-thumb > :global(.thumb),
+  .mini:hover .m-thumb > :global(img) {
+    transform: scale(1.08);
+    filter: brightness(1.1);
+  }
+  .m-body {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+  }
+  .m-body b {
+    font-family: var(--font-display);
+    font-size: 1.02rem;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+  .mini:hover .m-body b {
+    color: var(--c);
+  }
+
+  /* ---------- Reviews scoreboard ---------- */
+  .scoreboard {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 12px;
+  }
+  .scoreboard li {
+    /* Required. .card-link paints a full-area ::after overlay against its
+       nearest positioned ancestor - without this it resolves to <body> and
+       blankets the whole page, eating every hover and click above it. */
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 20px;
+    align-items: center;
+    padding: 16px 18px;
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-left: 3px solid var(--c);
+    transition:
+      border-color 0.18s var(--ease),
+      transform 0.18s var(--ease),
+      box-shadow 0.22s var(--ease);
+  }
+  .scoreboard li:hover {
+    transform: translateX(4px);
+    border-color: var(--c);
+    box-shadow:
+      0 12px 26px -14px rgba(0, 0, 0, 0.7),
+      0 0 18px -8px color-mix(in srgb, var(--c) 50%, transparent);
+  }
+  .sb-body {
+    display: grid;
+    gap: 5px;
+    min-width: 0;
+  }
+  .sb-game {
+    font-family: var(--font-display);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--c);
+  }
+  .sb-body h3 {
+    font-size: 1.3rem;
+    line-height: 1.15;
+  }
+  .sb-body h3 a:hover {
+    color: var(--c);
+  }
+  .sb-body p {
+    font-size: 0.9rem;
+    color: var(--text-2);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* ---------- Trending ---------- */
+  .trending {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .trending li {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 10px;
+    margin-inline: -10px;
+    border-radius: var(--radius);
+    transition: background 0.15s var(--ease);
+  }
+  .trending li:hover {
+    background: var(--surface-2);
+  }
+  .trending li:hover .rank {
+    color: var(--accent);
+  }
+  .trending li + li {
+    border-top: 1px solid var(--border-soft);
+  }
+  .rank {
+    flex: none;
+    width: 30px;
+    text-align: center;
+    font-family: var(--font-display);
+    font-size: 1.7rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--border);
+  }
+  /* Only the podium is coloured - if every rank lights up, rank means nothing. */
+  .trending li:nth-child(-n + 3) .rank {
+    color: var(--accent);
+  }
+  .t-body {
+    display: grid;
+    gap: 5px;
+    min-width: 0;
+  }
+  .t-body a {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.25;
+  }
+  .t-body a:hover {
+    color: var(--accent);
+  }
+
+  /* ---------- Newsletter ----------
+     Built like the other panels on the page rather than as a coloured banner:
+     surface, hairline, one accent rail down the left edge. The red is a rail
+     and a button, not a wash - a tinted slab is what made it read as filler. */
+  .signup-band {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(380px, 0.8fr);
+    align-items: center;
+    gap: 40px;
+    padding: 28px 32px;
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-left: 3px solid var(--accent);
+    clip-path: polygon(
+      0 0,
+      100% 0,
+      100% calc(100% - var(--notch)),
+      calc(100% - var(--notch)) 100%,
+      0 100%
+    );
+  }
+
+  .sb-eyebrow {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .signup-band h2 {
+    font-size: clamp(1.35rem, 2.4vw, 1.8rem);
+    text-transform: uppercase;
+    line-height: 1.05;
+  }
+  .signup-band p {
+    max-width: 58ch;
+    margin-top: 8px;
+    color: var(--text-2);
+    font-size: 0.94rem;
+    line-height: 1.55;
+  }
+
+  .sb-cta {
+    display: grid;
+    gap: 10px;
+    padding-left: 40px;
+    border-left: 1px solid var(--border-soft);
+  }
+
+  .sb-form {
+    display: flex;
+    gap: 10px;
+    /* Grid items default to min-width:auto, so without this the row keeps its
+       intrinsic width and pushes the button out past the panel edge. */
+    min-width: 0;
+  }
+  .sb-form input {
+    flex: 1;
+    min-width: 0;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    outline: none;
+    transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
+  }
+  .sb-form input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+  }
+  .sb-form input::placeholder {
+    color: var(--muted);
+  }
+  .sb-form .btn {
+    flex: none;
+  }
+  .sb-note {
+    font-family: var(--font-display);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+  }
+
+  @media (max-width: 900px) {
+    .spotlight {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .feature {
+      min-height: 300px;
+      padding: 22px;
+    }
+  }
+  @media (max-width: 700px) {
+    .signup-band {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 22px;
+      padding: 24px;
+    }
+    .sb-cta {
+      padding-left: 0;
+      padding-top: 20px;
+      border-left: 0;
+      border-top: 1px solid var(--border-soft);
+      width: 100%;
+      min-width: 0;
+    }
+  }
+
+  /* Below this the field and the button cannot share a row without the field
+     becoming too short to read an address back in. */
+  @media (max-width: 520px) {
+    .sb-form {
+      flex-direction: column;
+    }
+    .sb-form .btn {
+      width: 100%;
+    }
+  }
+  @media (max-width: 620px) {
+    .scoreboard li {
+      grid-template-columns: minmax(0, 1fr);
+      justify-items: start;
+      gap: 12px;
+    }
+  }
+</style>

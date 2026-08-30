@@ -1,0 +1,86 @@
+---
+/**
+ * The CritVolt mark.
+ *
+ * The artwork is an emblem, not a horizontal wordmark - it already contains
+ * the name, so nothing is set beside it. The visible name lives inside the
+ * image and a screen-reader copy sits next to it, which is what search and
+ * assistive tech read.
+ *
+ * WebP first with a PNG fallback; both are 639x228 - the artwork trimmed to
+ * its own edges and rendered at three times the largest place it is shown, so
+ * it stays sharp on every display. The source file carries ~14% dead space at
+ * the bottom, which would otherwise shrink the mark inside its box.
+ */
+interface Props {
+  /** md = header, lg = footer, where there is room to let it breathe. */
+  size?: 'md' | 'lg';
+  /** Wrap in a link. Off for the footer, which already links elsewhere. */
+  href?: string;
+}
+
+const { size = 'md', href = '/' } = Astro.props;
+const Tag = href ? 'a' : 'span';
+---
+
+<Tag class={`logo logo--${size}`} {...(href ? { href } : {})}>
+  <picture>
+    <source srcset="/logo.webp" type="image/webp" />
+    {/* The mark is above the fold on every page, so it is never lazy. */}
+    <img
+      src="/logo.png"
+      alt=""
+      width="639"
+      height="228"
+      loading="eager"
+      decoding="async"
+    />
+  </picture>
+  <span class="sr-only">CritVolt</span>
+</Tag>
+
+<style>
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    flex: none;
+    line-height: 0;
+  }
+  .logo img {
+    width: auto;
+    display: block;
+    transition: filter 0.18s var(--ease), transform 0.18s var(--ease);
+  }
+
+  /* The mark is horizontal now (2.8:1), so height buys real presence: 54px
+     puts it at ~151px wide, which is a masthead rather than a badge. */
+  .logo--md img {
+    height: 54px;
+  }
+  .logo--lg img {
+    height: 76px;
+  }
+
+  /* The artwork already has its own glow baked in; this only lifts it on
+     hover so the mark answers the pointer like everything else. */
+  a.logo:hover img {
+    filter: drop-shadow(0 0 14px var(--accent-glow));
+    transform: translateY(-1px);
+  }
+
+  /* Phones: the header also carries search, the CTA and the burger, so the
+     mark steps down rather than pushing them off the row. */
+  @media (max-width: 620px) {
+    .logo--md img {
+      height: 40px;
+    }
+    .logo--lg img {
+      height: 60px;
+    }
+  }
+  @media (max-width: 400px) {
+    .logo--md img {
+      height: 34px;
+    }
+  }
+</style>

@@ -1,0 +1,91 @@
+---
+/**
+ * Reading progress bar — the thin line under the header that fills as you scroll.
+ *
+ * Where the browser supports scroll-driven animations this costs zero JavaScript
+ * and runs off the main thread, so it stays smooth even while the page is busy.
+ * Browsers without it fall back to a small rAF-throttled scroll listener.
+ */
+---
+
+<div class="progress" aria-hidden="true">
+  <span class="progress-fill"></span>
+</div>
+
+<style>
+  .progress {
+    position: fixed;
+    /* Flush against the bottom edge of the sticky header. */
+    top: calc(var(--header-h) + 2px);
+    left: 0;
+    right: 0;
+    height: 3px;
+    z-index: 99;
+    background: var(--border-soft);
+    pointer-events: none;
+  }
+
+  .progress-fill {
+    display: block;
+    height: 100%;
+    width: 100%;
+    background: var(--c, var(--accent));
+    box-shadow: 0 0 12px var(--c, var(--accent));
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+  }
+
+  /* Preferred path: the browser drives it from the scroll position itself. */
+  @supports (animation-timeline: scroll()) {
+    .progress-fill {
+      animation: progress-grow linear both;
+      animation-timeline: scroll(root block);
+    }
+  }
+
+  @keyframes progress-grow {
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  /* JS fallback writes this variable instead. */
+  .progress-fill[data-js] {
+    transform: scaleX(var(--p, 0));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .progress-fill {
+      box-shadow: none;
+    }
+  }
+</style>
+
+<script>
+  const fill = document.querySelector<HTMLElement>('.progress-fill');
+
+  if (fill && !CSS.supports('animation-timeline: scroll()')) {
+    fill.dataset.js = '';
+    let ticking = false;
+
+    const update = () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const p = max > 0 ? Math.min(1, window.scrollY / max) : 0;
+      fill.style.setProperty('--p', String(p));
+      ticking = false;
+    };
+
+    addEventListener(
+      'scroll',
+      () => {
+        if (!ticking) {
+          ticking = true;
+          requestAnimationFrame(update);
+        }
+      },
+      { passive: true },
+    );
+    addEventListener('resize', update, { passive: true });
+    update();
+  }
+</script>

@@ -1,0 +1,25 @@
+---
+/** Review score, 0-10. Colour is derived, never hand-picked, so scoring stays honest. */
+interface Props {
+  score: number;
+  size?: 'sm' | 'lg';
+  class?: string;
+}
+
+const { score, size = 'lg', class: className = '' } = Astro.props;
+
+const colour =
+  score >= 8 ? 'var(--score-good)' : score >= 6 ? 'var(--score-ok)' : 'var(--score-bad)';
+
+// 8.0 reads better than 8 on a score badge; 8.5 stays 8.5.
+const label = Number.isInteger(score) ? `${score}.0` : score.toFixed(1);
+---
+
+<div
+  class={`score ${size === 'sm' ? 'score--sm' : ''} ${className}`}
+  style={`--sc: ${colour};`}
+  aria-label={`Scored ${label} out of 10`}
+>
+  <b>{label}</b>
+  <span>/ 10</span>
+</div>

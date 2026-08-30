@@ -1,0 +1,108 @@
+---
+import { SITE } from '../consts';
+
+/**
+ * Share links. Plain anchors to each network's own share URL — no third-party
+ * widgets, no tracking scripts, nothing that costs a request or leaks readers.
+ *
+ * Reddit is first on purpose: for gaming content it sends more traffic than the
+ * rest combined.
+ */
+interface Props {
+  title: string;
+  url: string;
+}
+
+const { title, url } = Astro.props;
+const abs = new URL(url, Astro.site ?? SITE.url).href;
+const t = encodeURIComponent(title);
+const u = encodeURIComponent(abs);
+
+const links = [
+  { label: 'Reddit', href: `https://www.reddit.com/submit?url=${u}&title=${t}` },
+  { label: 'X', href: `https://x.com/intent/tweet?url=${u}&text=${t}` },
+  { label: 'Facebook', href: `https://www.facebook.com/sharer/sharer.php?u=${u}` },
+];
+---
+
+<div class="share">
+  <span class="share-label">Share</span>
+
+  {
+    links.map((l) => (
+      <a class="share-btn" href={l.href} target="_blank" rel="noopener noreferrer">
+        {l.label}
+      </a>
+    ))
+  }
+
+  <button class="share-btn share-copy" type="button" data-copy={abs}>
+    <span data-copy-label>Copy link</span>
+  </button>
+</div>
+
+<style>
+  .share {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-soft);
+  }
+  .share-label {
+    font-family: var(--font-display);
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--muted);
+    margin-right: 4px;
+  }
+  .share-btn {
+    font-family: var(--font-display);
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-2);
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 7px 14px;
+    cursor: pointer;
+    transition: color 0.15s var(--ease), border-color 0.15s var(--ease);
+  }
+  .share-btn:hover {
+    color: var(--c, var(--accent));
+    border-color: var(--c, var(--accent));
+  }
+  .share-copy[data-done] {
+    color: var(--score-good);
+    border-color: var(--score-good);
+  }
+</style>
+
+<script>
+  const btn = document.querySelector<HTMLButtonElement>('[data-copy]');
+  const label = btn?.querySelector<HTMLElement>('[data-copy-label]');
+
+  btn?.addEventListener('click', async () => {
+    if (!label) return;
+    try {
+      await navigator.clipboard.writeText(btn.dataset.copy ?? '');
+      label.textContent = 'Copied';
+      btn.dataset.done = '';
+      setTimeout(() => {
+        label.textContent = 'Copy link';
+        delete btn.dataset.done;
+      }, 1800);
+    } catch {
+      // Clipboard blocked (insecure context, denied permission) — say so rather
+      // than leaving the button looking like it worked.
+      label.textContent = 'Press Ctrl+C';
+      setTimeout(() => (label.textContent = 'Copy link'), 1800);
+    }
+  });
+</script>

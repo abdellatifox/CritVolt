@@ -1,0 +1,116 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import { SITE, CATEGORY_MAP } from '../../consts';
+import { getAllPosts, gamesCovered, postsForGame, formatDate } from '../../lib/posts';
+
+export async function getStaticPaths() {
+  const all = await getAllPosts();
+  return gamesCovered(all).map((g) => ({ params: { game: g.slug }, props: { hub: g } }));
+}
+
+const { hub } = Astro.props as { hub: import('../../lib/posts').GameHub };
+const posts = postsForGame(await getAllPosts(), hub.slug);
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: `${hub.name} coverage`,
+    url: `${SITE.url}/games/${hub.slug}/`,
+    about: { '@type': 'VideoGame', name: hub.name },
+  },
+];
+---
+
+<BaseLayout
+  title={`${hub.name} guides, news and reviews`}
+  description={`Everything ${SITE.name} has published about ${hub.name} - ${hub.count} articles across ${hub.sections.length} sections.`}
+  jsonLd={jsonLd}
+>
+  <div class="wrap">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href="/">Home</a>
+      <span>/</span>
+      <a href="/games/">Games</a>
+    </nav>
+
+    <header class="archive-head">
+      <h1>{hub.name}</h1>
+      <p class="stats">
+        <b>{hub.count}</b> {hub.count === 1 ? 'article' : 'articles'}
+        <i class="dot"></i>
+        {hub.sections.map((s) => CATEGORY_MAP[s as keyof typeof CATEGORY_MAP].label).join(', ')}
+        <i class="dot"></i>
+        Last updated {formatDate(hub.latest)}
+      </p>
+    </header>
+  </div>
+
+  <div class="wrap shell">
+    <div>
+      <div class="grid grid--2">
+        {posts.map((p) => <ArticleCard post={p} showExcerpt={true} />)}
+      </div>
+    </div>
+
+    <aside class="rail" aria-label="Sidebar">
+      <AdSlot id="games-rail-rect" format="rect" />
+    </aside>
+  </div>
+</BaseLayout>
+
+<style>
+  .crumbs {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-family: var(--font-display);
+    font-size: 0.74rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+    padding-top: 22px;
+  }
+  .crumbs span {
+    color: var(--accent);
+    opacity: 0.75;
+  }
+  .crumbs a:hover {
+    color: var(--accent);
+  }
+
+  .archive-head {
+    padding-block: 16px 22px;
+    border-bottom: 1px solid var(--border-soft);
+    margin-bottom: 26px;
+    display: grid;
+    gap: 12px;
+  }
+  .archive-head h1 {
+    font-size: clamp(2rem, 5vw, 3.2rem);
+  }
+  .stats {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-family: var(--font-display);
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+  }
+  .stats b {
+    color: var(--accent);
+  }
+  .dot {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.65;
+  }
+</style>

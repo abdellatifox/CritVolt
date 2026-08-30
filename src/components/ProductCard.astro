@@ -1,0 +1,249 @@
+---
+import Thumb from './Thumb.astro';
+import { affiliateUrl, affiliateAttrs, type Network } from '../lib/affiliate';
+
+/**
+ * The money component. Every hardware pick and every "buy the game" link
+ * renders through this, so tracking, rel attributes and disclosure stay
+ * consistent across the whole site.
+ *
+ * Prices are shown as an "indicative" string, never as a hard fact - retail
+ * prices move weekly and a stale price destroys reader trust faster than
+ * anything else on a buying guide.
+ */
+export interface ProductData {
+  name: string;
+  award?: string;
+  image?: string;
+  price?: string;
+  specs?: { label: string; value: string }[];
+  pros?: string[];
+  cons?: string[];
+  url: string;
+  network?: Network;
+  retailer?: string;
+}
+
+interface Props {
+  product: ProductData;
+  /** Article slug - forwarded as a sub-id so you can see which post earns. */
+  subId?: string;
+  /** Position in a "best of" list. Rendered as a rank chip. */
+  rank?: number;
+}
+
+const { product, subId, rank } = Astro.props;
+const {
+  name,
+  award,
+  image,
+  price,
+  specs = [],
+  pros = [],
+  cons = [],
+  url,
+  network = 'amazon',
+  retailer = 'Amazon',
+} = product;
+
+const href = affiliateUrl(url, network, subId);
+const attrs = affiliateAttrs(network);
+---
+
+<div class="product" data-cat="setup">
+  <div class="product-media">
+    <Thumb src={image} alt={name} seed={name} label={name} width={520} height={390} />
+    {rank && <span class="product-rank">#{rank}</span>}
+  </div>
+
+  <div class="product-info">
+    {award && <span class="product-award">{award}</span>}
+    <h3 class="product-name">{name}</h3>
+
+    {
+      specs.length > 0 && (
+        <dl class="product-specs">
+          {specs.map((s) => (
+            <div>
+              <dt>{s.label}</dt>
+              <dd>{s.value}</dd>
+            </div>
+          ))}
+        </dl>
+      )
+    }
+
+    {
+      (pros.length > 0 || cons.length > 0) && (
+        <div class="product-verdict">
+          {pros.length > 0 && (
+            <ul class="pro">
+              {pros.map((p) => (
+                <li>{p}</li>
+              ))}
+            </ul>
+          )}
+          {cons.length > 0 && (
+            <ul class="con">
+              {cons.map((c) => (
+                <li>{c}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )
+    }
+  </div>
+
+  <div class="product-buy">
+    {price && <span class="product-price">{price}</span>}
+    <a class="btn btn--buy" href={href} {...attrs}>Check price</a>
+    <small>at {retailer}</small>
+  </div>
+</div>
+
+<style>
+  .product {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr) 180px;
+    gap: 20px;
+    align-items: start;
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-left: 3px solid var(--cat-setup);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-block: 26px;
+  }
+
+  .product-media {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--surface-2);
+  }
+  .product-rank {
+    position: absolute;
+    left: 8px;
+    top: 8px;
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 3px 9px;
+    border-radius: 2px;
+  }
+
+  .product-award {
+    display: inline-block;
+    font-family: var(--font-display);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--cat-setup);
+    margin-bottom: 6px;
+  }
+
+  .product-name {
+    font-size: 1.5rem;
+    line-height: 1.1;
+    margin-bottom: 12px;
+  }
+
+  .product-specs {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px 16px;
+    margin-bottom: 14px;
+  }
+  .product-specs dt {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+  }
+  .product-specs dd {
+    font-size: 0.92rem;
+    font-weight: 500;
+    margin: 0;
+  }
+
+  .product-verdict {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 6px 20px;
+    font-size: 0.88rem;
+  }
+  .product-verdict ul {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 4px;
+  }
+  .product-verdict li {
+    position: relative;
+    padding-left: 18px;
+    color: var(--text-2);
+    line-height: 1.45;
+  }
+  .product-verdict .pro li::before {
+    content: "+";
+    position: absolute;
+    left: 0;
+    color: var(--score-good);
+    font-weight: 700;
+  }
+  .product-verdict .con li::before {
+    content: "-";
+    position: absolute;
+    left: 0;
+    color: var(--score-bad);
+    font-weight: 700;
+  }
+
+  .product-buy {
+    display: grid;
+    gap: 8px;
+    justify-items: stretch;
+    text-align: center;
+    background: var(--bg-elev);
+    border-radius: var(--radius);
+    padding: 16px 14px;
+  }
+  .product-price {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .product-buy small {
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+
+  @media (max-width: 860px) {
+    .product {
+      grid-template-columns: 130px minmax(0, 1fr);
+    }
+    .product-buy {
+      grid-column: 1 / -1;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      text-align: left;
+    }
+    .product-buy small {
+      grid-column: 1 / -1;
+    }
+  }
+  @media (max-width: 520px) {
+    .product {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .product-media {
+      max-width: 200px;
+    }
+  }
+</style>

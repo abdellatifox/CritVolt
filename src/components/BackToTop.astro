@@ -1,0 +1,97 @@
+---
+/**
+ * Back to top. Appears only once a reader is deep enough that scrolling back
+ * would be a chore, and stays out of the way of the mobile ad rail.
+ */
+---
+
+<button class="totop" type="button" aria-label="Back to top" hidden>
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M12 19V5M6 11l6-6 6 6" />
+  </svg>
+</button>
+
+<style>
+  .totop {
+    position: fixed;
+    right: 20px;
+    bottom: calc(20px + var(--anchor-h, 0px));
+    z-index: 90;
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-2);
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(8px);
+    transition:
+      opacity 0.2s var(--ease),
+      transform 0.2s var(--ease),
+      color 0.15s var(--ease),
+      border-color 0.15s var(--ease);
+  }
+  .totop[hidden] {
+    display: none;
+  }
+  .totop[data-show] {
+    opacity: 1;
+    transform: none;
+  }
+  .totop:hover {
+    color: var(--c, var(--accent));
+    border-color: var(--c, var(--accent));
+  }
+  .totop svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  @media (max-width: 560px) {
+    .totop {
+      right: 14px;
+      bottom: calc(14px + var(--anchor-h, 0px));
+    }
+  }
+</style>
+
+<script>
+  const btn = document.querySelector<HTMLButtonElement>('.totop');
+
+  if (btn) {
+    btn.hidden = false;
+    let ticking = false;
+
+    const update = () => {
+      if (window.scrollY > 800) btn.dataset.show = '';
+      else delete btn.dataset.show;
+      ticking = false;
+    };
+
+    addEventListener(
+      'scroll',
+      () => {
+        if (!ticking) {
+          ticking = true;
+          requestAnimationFrame(update);
+        }
+      },
+      { passive: true },
+    );
+
+    btn.addEventListener('click', () => {
+      const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+    });
+
+    update();
+  }
+</script>

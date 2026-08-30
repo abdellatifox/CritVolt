@@ -1,0 +1,62 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Thumb from '../../components/Thumb.astro';
+import { SITE } from '../../consts';
+import { getAllPosts, gamesCovered, formatDate } from '../../lib/posts';
+
+const games = gamesCovered(await getAllPosts());
+---
+
+<BaseLayout
+  title="Games we cover"
+  description={`Every game ${SITE.name} has published guides, news and reviews for.`}
+>
+  <div class="wrap">
+    <header class="archive-head">
+      <p class="eyebrow">Index</p>
+      <h1>Games we cover</h1>
+      <p class="archive-intro">
+        {games.length} games, {games.reduce((n, g) => n + g.count, 0)} articles. Every piece we
+        have published, grouped by what it is about.
+      </p>
+    </header>
+
+    <div class="grid grid--4 games">
+      {
+        games.map((g) => (
+          <a class="game-card" href={`/games/${g.slug}/`}>
+            <Thumb src={g.cover} alt="" seed={g.slug} label={g.name} width={400} height={533} />
+            <span class="g-name">{g.name}</span>
+            <span class="g-count">
+              {g.count} {g.count === 1 ? 'article' : 'articles'} &middot; {formatDate(g.latest)}
+            </span>
+          </a>
+        ))
+      }
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .archive-head {
+    padding-block: 34px 22px;
+    border-bottom: 1px solid var(--border-soft);
+    margin-bottom: 26px;
+    display: grid;
+    gap: 10px;
+  }
+  .eyebrow {
+    font-family: var(--font-display);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+  }
+  .archive-intro {
+    color: var(--text-2);
+    max-width: 62ch;
+  }
+  .games {
+    margin-bottom: 56px;
+  }
+</style>

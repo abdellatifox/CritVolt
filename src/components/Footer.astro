@@ -1,0 +1,115 @@
+---
+import { SITE, CATEGORIES, SECONDARY_NAV } from '../consts';
+import Logo from './Logo.astro';
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="wrap foot">
+    <div class="foot-brand">
+      <Logo size="lg" href="" />
+      <p>{SITE.description}</p>
+    </div>
+
+    <nav aria-label="Sections">
+      <h2>Sections</h2>
+      <ul>
+        {
+          CATEGORIES.map((c) => (
+            <li data-cat={c.id}>
+              <a href={c.href}>{c.label}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <nav aria-label="More">
+      <h2>Site</h2>
+      <ul>
+        {
+          SECONDARY_NAV.map((l) => (
+            <li>
+              <a href={l.href}>{l.label}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </div>
+
+  <div class="wrap legal">
+    <p>&copy; {year} {SITE.name}. All rights reserved.</p>
+    <p>
+      As an Amazon Associate we earn from qualifying purchases. Product prices and
+      availability are accurate as of the date shown and are subject to change.
+    </p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    margin-top: 64px;
+    border-top: 1px solid var(--border-soft);
+    background: var(--bg-elev);
+    padding-block: 44px 28px;
+  }
+
+  .foot {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr));
+    gap: 40px;
+  }
+
+  .foot-brand p {
+    margin-top: 10px;
+    color: var(--muted);
+    font-size: 0.9rem;
+    max-width: 46ch;
+  }
+
+  .foot h2 {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+  .foot ul {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 9px;
+  }
+  .foot a {
+    font-size: 0.94rem;
+    color: var(--text-2);
+    transition: color 0.15s var(--ease);
+  }
+  .foot li[data-cat] a:hover {
+    color: var(--c);
+  }
+  .foot a:hover {
+    color: var(--accent);
+  }
+
+  .legal {
+    margin-top: 36px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border-soft);
+    display: grid;
+    gap: 6px;
+    color: #5f5f6d;
+    font-size: 0.78rem;
+  }
+
+  @media (max-width: 720px) {
+    .foot {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 28px;
+    }
+    .foot-brand {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

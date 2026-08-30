@@ -1,0 +1,47 @@
+---
+/**
+ * Rendered automatically on any page that carries affiliate links.
+ *
+ * This is not optional: the FTC requires a clear, conspicuous disclosure
+ * *before* the links, and Amazon Associates will close an account without one.
+ * Because it is a component, it can never be forgotten on a new article.
+ */
+interface Props {
+  compact?: boolean;
+}
+const { compact = false } = Astro.props;
+---
+
+<p class={`disclosure ${compact ? 'disclosure--compact' : ''}`}>
+  <strong>Disclosure:</strong> CritVolt is reader-supported. When you buy through
+  links on our site we may earn an affiliate commission, at no extra cost to you.
+  We only recommend hardware we have tested or would buy ourselves.
+  <a href="/affiliate-disclosure/">Learn more</a>.
+</p>
+
+<style>
+  .disclosure {
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: var(--muted);
+    background: var(--bg-elev);
+    border: 1px solid var(--border-soft);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    margin-block: 20px;
+  }
+  .disclosure strong {
+    color: var(--text-2);
+  }
+  .disclosure a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .disclosure--compact {
+    margin-block: 10px;
+    padding: 9px 12px;
+    font-size: 0.76rem;
+  }
+</style>

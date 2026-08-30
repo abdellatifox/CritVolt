@@ -1,0 +1,629 @@
+/* =========================================================================
+   CritVolt - design system
+   Dark-first. Signal red is the brand and carries every piece of chrome; each
+   section then gets one hue of its own, tuned as a family so a rail of four
+   never reads as four different websites.
+   Tokens first, components second: change a token and the whole site follows.
+   ========================================================================= */
+
+/* ---------- 1. Tokens ---------- */
+:root {
+  /* Surfaces - near-black, slightly blue so the accent reads warmer */
+  --bg: #08080b;
+  --bg-elev: #0d0d12;
+  --surface: #131319;
+  --surface-2: #1a1a22;
+  --surface-3: #22222c;
+  --border: #272733;
+  --border-soft: #1d1d26;
+
+  /* Text */
+  --text: #f4f4f7;
+  --text-2: #b6b6c4;
+  --muted: #7e7e8d;
+
+  /* Brand accent - signal red. Loud on purpose: it is the only pure red on
+     the site, and nothing but chrome is allowed to use it. */
+  --accent: #ff3b30;
+  /* Lighter step for hover states and small text. */
+  --accent-soft: #ff7a72;
+  --accent-dim: #c42a21;
+  --accent-ink: #0a0a0c;
+  --accent-glow: rgba(255, 59, 48, 0.34);
+
+  /* Category hues. What made the first set clash was not the number of hues,
+     it was that they were all pitched differently - a neon magenta shouting
+     next to a muted amber. This set is one family: every hue sits at roughly
+     the same lightness and the same restraint, one clear step below the brand
+     red so a section tag can never be mistaken for chrome.
+
+     Amber is red's analogous neighbour and keeps the warm end company; jade,
+     azure and violet spread across the cool half opposite it. Nothing lands
+     in the 340-20 degree band, which is reserved for the red alone - that is
+     the rule the old magenta broke. */
+  --cat-guides: #2fd6a0;  /* jade   */
+  --cat-news: #f0a72b;    /* amber  */
+  --cat-reviews: #9d7bf5; /* violet */
+  --cat-setup: #4fa8f7;   /* azure  */
+
+  /* Score gauge. Reuses the family rather than inventing a fourth set: the
+     section hues already contain a green and an amber, and red is the site's
+     own word for "bad". */
+  --score-good: var(--cat-guides);
+  --score-ok: var(--cat-news);
+  --score-bad: var(--accent);
+
+  /* Type */
+  --font-display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  /* Geometry */
+  --radius: 4px;
+  --radius-lg: 8px;
+  /* Clipped corner used on the panels that are meant to feel like hardware:
+     the feature, the game cards, the sign-up band. Deliberately NOT on every
+     card - a notch on everything stops reading as a detail. */
+  --notch: 10px;
+  --wrap: 1300px;
+  --gap: 24px;
+  --header-h: 72px;
+  /* Height of the bottom anchor ad while it is up; AdAnchor writes it. */
+  --anchor-h: 0px;
+
+  /* Motion */
+  --ease: cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+/* Category colour resolver: any element sets data-cat, children read --c.
+   All four resolve to the brand red today - the hook stays so section colour
+   is a one-line change, not a hunt through components. */
+[data-cat="guides"] { --c: var(--cat-guides); }
+[data-cat="news"] { --c: var(--cat-news); }
+[data-cat="reviews"] { --c: var(--cat-reviews); }
+[data-cat="setup"] { --c: var(--cat-setup); }
+
+/* ---------- 2. Reset ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; }
+
+html {
+  scroll-behavior: smooth;
+  /* Anchors land below the sticky header instead of underneath it */
+  scroll-padding-top: calc(var(--header-h) + 16px);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--bg);
+  /* Fixed, so the grid stays put while the page moves over it. */
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.026) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.026) 1px, transparent 1px);
+  background-size: 64px 64px;
+  background-attachment: fixed;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+img, picture, svg, video { display: block; max-width: 100%; }
+button, input, select, textarea { font: inherit; color: inherit; }
+
+a { color: inherit; text-decoration: none; }
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0;
+  margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+.skip-link {
+  position: absolute; left: 12px; top: -60px; z-index: 200;
+  background: var(--accent); color: var(--accent-ink);
+  padding: 10px 16px; font-weight: 700; transition: top 0.15s var(--ease);
+}
+.skip-link:focus { top: 12px; }
+
+/* ---------- 3. Layout primitives ---------- */
+.wrap {
+  width: 100%;
+  max-width: var(--wrap);
+  margin-inline: auto;
+  padding-inline: 20px;
+}
+
+/* Main column + sticky rail. Collapses to one column under 1000px. */
+.shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 40px;
+  align-items: start;
+}
+.rail { position: sticky; top: calc(var(--header-h) + 20px); display: grid; gap: 20px; }
+
+.stack { display: grid; gap: var(--gap); }
+.section { margin-block: 48px; }
+/* The feed's own sections carry the section-head rule; no extra divider on
+   top of it, or every block gets two lines above its title. */
+.feed > .section { margin-block: 0 40px; }
+.feed > .section:last-child { margin-bottom: 0; }
+
+/* ---------- 4. Typography ---------- */
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.005em;
+}
+
+.eyebrow {
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+}
+
+/* Section header: coloured tick + title + "view all" */
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border-soft);
+  padding-bottom: 10px;
+}
+.section-head h2 {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.section-head h2::before {
+  content: "";
+  width: 5px;
+  height: 1.05em;
+  background: var(--c, var(--accent));
+  box-shadow: 0 0 12px var(--accent-glow);
+  flex: none;
+}
+.section-head .more {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  white-space: nowrap;
+  transition: color 0.15s var(--ease);
+}
+.section-head .more:hover { color: var(--c, var(--accent)); }
+
+/* ---------- 5. Category tag ---------- */
+.tag {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--c, var(--accent));
+  line-height: 1;
+}
+/* Solid variant sits on cover art - the angled cut reads "gaming HUD" */
+.tag--solid {
+  background: var(--c, var(--accent));
+  color: #08080b;
+  padding: 5px 12px 4px;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 7px) 100%, 0 100%);
+}
+
+/* ---------- 6. Cards ---------- */
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition:
+    border-color 0.18s var(--ease),
+    transform 0.18s var(--ease),
+    box-shadow 0.22s var(--ease);
+}
+.card:hover {
+  border-color: var(--c, var(--accent));
+  transform: translateY(-4px);
+  /* Depth first, then a low bloom in the section colour - the glow is what
+     makes the lift read as a response rather than a rendering wobble. */
+  box-shadow:
+    0 14px 30px -12px rgba(0, 0, 0, 0.7),
+    0 0 22px -8px color-mix(in srgb, var(--c, var(--accent)) 55%, transparent);
+}
+.card:hover .card-title { color: var(--c, var(--accent)); }
+
+/* A rule that wipes across the top edge on hover. One shared gesture: the
+   same bar appears on the feature, the game tiles and the scoreboard rows, so
+   the whole page answers the pointer the same way. */
+.card::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  z-index: 4;
+  background: var(--c, var(--accent));
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform 0.3s var(--ease);
+  pointer-events: none;
+}
+.card:hover::after { transform: scaleX(1); }
+
+/* The art lifts with the card. brightness is doing the work at this size -
+   a 5% zoom alone is barely visible on a 250px thumbnail. */
+.card-media > .thumb,
+.card-media > img { transition: transform 0.4s var(--ease), filter 0.25s var(--ease); }
+.card:hover .card-media > .thumb,
+.card:hover .card-media > img { filter: brightness(1.1) saturate(1.05); }
+
+.card-media { position: relative; aspect-ratio: 16 / 9; overflow: hidden; }
+/* Only the artwork fills the box. This selector used to be `.card-media > *`,
+   which also stretched the absolutely-positioned category tag to full size and
+   painted a solid block over every cover. */
+.card-media > .thumb,
+.card-media > img { width: 100%; height: 100%; object-fit: cover; }
+.card:hover .thumb-inner { transform: scale(1.05); }
+
+.card-tag { position: absolute; left: 0; top: 12px; z-index: 2; }
+
+.card-body { padding: 14px 16px 18px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.card-title {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1.14;
+  transition: color 0.15s var(--ease);
+}
+.card-excerpt { font-size: 0.9rem; color: var(--text-2); line-height: 1.5; }
+.dot { width: 3px; height: 3px; border-radius: 50%; background: currentColor; flex: none; opacity: 0.65; }
+.card-meta {
+  margin-top: auto;
+  font-size: 0.75rem;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.card-meta .dot { width: 3px; height: 3px; border-radius: 50%; background: currentColor; }
+
+/* Stretched link keeps the whole card clickable without nesting anchors */
+/* Full-area click target for a card. It is absolutely positioned, so ANY
+   container using .card-link must be position: relative - otherwise the
+   overlay resolves against <body> and silently covers the entire page. */
+.card-link::after { content: ""; position: absolute; inset: 0; z-index: 3; }
+
+/* Horizontal card - hero rail and trending list */
+.card--row {
+  flex-direction: row;
+  align-items: stretch;
+  border-radius: var(--radius);
+  padding: 10px;
+  gap: 12px;
+}
+.card--row:hover { transform: translateX(4px); border-color: var(--c, var(--accent)); }
+.card--row .card-media { width: 116px; flex: none; aspect-ratio: 4 / 3; border-radius: 2px; }
+.card--row .card-body { padding: 2px 4px 2px 0; gap: 6px; }
+.card--row .card-title { font-size: 1.02rem; }
+
+/* Grids */
+/* Game hub tile. Portrait, because box art is portrait. */
+.game-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  aspect-ratio: 3 / 4;
+  padding: 14px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  clip-path: polygon(var(--notch) 0, 100% 0, 100% 100%, 0 100%, 0 var(--notch));
+  transition:
+    border-color 0.18s var(--ease),
+    transform 0.18s var(--ease),
+    box-shadow 0.22s var(--ease);
+}
+.game-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-4px);
+  box-shadow:
+    0 16px 34px -14px rgba(0, 0, 0, 0.75),
+    0 0 24px -8px var(--accent-glow);
+}
+/* Same wipe as the cards, along the tile's top edge. */
+.game-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  z-index: 3;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform 0.3s var(--ease);
+}
+.game-card:hover::before { transform: scaleX(1); }
+.game-card:hover > .thumb,
+.game-card:hover > img { filter: brightness(1.12) saturate(1.05); }
+.game-card > .thumb,
+.game-card > img {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s var(--ease), filter 0.25s var(--ease);
+}
+.game-card:hover > .thumb,
+.game-card:hover > img { transform: scale(1.06); }
+.game-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(rgba(0, 0, 0, 0) 40%, rgba(8, 8, 11, 0.94));
+}
+.game-card .g-name,
+.game-card .g-count { position: relative; z-index: 2; }
+.game-card .g-name {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.15;
+  color: #fff;
+}
+.game-card:hover .g-name { color: var(--accent); }
+.game-card .g-count {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+}
+.game-card .g-count .dot { background: currentColor; opacity: 0.6; }
+
+.grid { display: grid; gap: 20px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+.grid--4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.grid--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.grid--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+/* ---------- 7. Hero ---------- */
+.hero { display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr); gap: 20px; }
+.hero-main {
+  position: relative;
+  border-radius: var(--radius);
+  overflow: hidden;
+  min-height: 430px;
+  display: flex;
+}
+.hero-main .thumb, .hero-main img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.hero-main::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(8, 8, 11, 0.96) 8%, rgba(8, 8, 11, 0.55) 45%, rgba(8, 8, 11, 0.05) 100%);
+}
+.hero-copy {
+  position: relative; z-index: 2;
+  padding: 28px;
+  display: grid; gap: 12px;
+  width: 100%;
+  align-content: end;
+}
+/* The tag is a grid item here, so it would stretch the full column width. */
+.hero-copy .tag { justify-self: start; }
+.hero-copy h2 { font-size: clamp(1.9rem, 3.6vw, 3rem); text-wrap: balance; }
+.hero-main:hover .hero-copy h2 { color: var(--c, var(--accent)); }
+.hero-copy p { color: var(--text-2); max-width: 60ch; font-size: 0.98rem; }
+.hero-side { display: grid; gap: 16px; align-content: start; }
+
+/* ---------- 8. Ad slots ---------- */
+/* Reserved boxes. Height is fixed BEFORE the ad loads so nothing shifts -
+   layout shift is the fastest way to lose both Core Web Vitals and readers. */
+.ad {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  background: var(--bg-elev);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  position: relative;
+}
+.ad::before {
+  content: "Advertisement";
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: #3a3a47;
+}
+.ad--leaderboard {
+  width: 728px;
+  max-width: 100%;
+  height: 90px;
+  min-height: 90px;
+  margin-inline: auto;
+  padding: 8px;
+}
+.ad--billboard { min-height: 250px; }
+/* 300x250. Width comes from whatever column holds it, so it fills the page
+   width on phones and sits at 300 in a rail. */
+.ad--rect { min-height: 260px; }
+.ad--halfpage { min-height: 600px; max-width: 300px; margin-inline: auto; }
+/* Native in-feed block: short, so it reads as a row of the feed. */
+.ad--inline { min-height: 130px; }
+.ad--inarticle { min-height: 280px; margin-block: 32px; }
+
+/* ---------- 9. Buttons ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 11px 22px;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background 0.15s var(--ease), box-shadow 0.15s var(--ease), color 0.15s var(--ease), border-color 0.15s var(--ease);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 9px) 100%, 0 100%);
+}
+/* Filled call to action. Bare .btn is deliberately transparent, so anything
+   that needs to look like a button has to take a variant - without one it
+   renders as plain bold text. */
+.btn--primary,
+.btn--buy { background: var(--accent); color: var(--accent-ink); }
+.btn--primary:hover,
+.btn--buy:hover { background: var(--accent-soft); box-shadow: 0 0 26px var(--accent-glow); }
+.btn--ghost {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--text-2);
+  clip-path: none;
+  border-radius: var(--radius);
+}
+.btn--ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ---------- 10. Score badge (reviews) ---------- */
+.score {
+  display: grid;
+  place-items: center;
+  width: 74px; height: 74px;
+  flex: none;
+  border: 2px solid var(--sc);
+  border-radius: 50%;
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--sc);
+  line-height: 1;
+}
+.score b { font-size: 1.9rem; }
+.score span { font-size: 0.58rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+.score--sm { width: 46px; height: 46px; }
+.score--sm b { font-size: 1.2rem; }
+.score--sm span { display: none; }
+.card-score {
+  position: absolute; right: 10px; bottom: 10px; z-index: 2;
+  background: rgba(8, 8, 11, 0.82);
+  backdrop-filter: blur(6px);
+  border-radius: 50%;
+}
+
+/* ---------- 11. Article body ---------- */
+.prose { font-size: 1.05rem; line-height: 1.75; color: #dcdce4; max-width: 74ch; }
+.prose > * + * { margin-top: 1.15em; }
+.prose h2 {
+  font-size: 1.9rem;
+  margin-top: 2.2em;
+  text-transform: uppercase;
+  border-top: 1px solid var(--border-soft);
+  padding-top: 0.8em;
+}
+.prose h3 { font-size: 1.45rem; margin-top: 1.8em; color: var(--text); }
+.prose a { color: var(--c, var(--accent)); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+.prose a:hover { color: var(--text); }
+.prose ul, .prose ol { padding-left: 1.3em; display: grid; gap: 0.5em; }
+.prose li::marker { color: var(--c, var(--accent)); }
+.prose blockquote {
+  border-left: 3px solid var(--c, var(--accent));
+  padding: 4px 0 4px 18px;
+  color: var(--text-2);
+  font-style: italic;
+}
+.prose code { background: var(--surface-2); padding: 2px 6px; border-radius: 3px; font-size: 0.9em; }
+.prose pre { border: 1px solid var(--border-soft); border-radius: var(--radius); padding: 16px; overflow-x: auto; }
+.prose img { border-radius: var(--radius); width: 100%; height: auto; }
+/* In-article screenshot. The caption carries the source, which is what keeps
+   store and press artwork usable. */
+.prose figure { margin-block: 2em; }
+.prose figure img { display: block; }
+.prose figcaption {
+  margin-top: 8px;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--muted);
+  border-left: 2px solid var(--border);
+  padding-left: 10px;
+}
+.prose table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+.prose th, .prose td { border: 1px solid var(--border); padding: 10px 12px; text-align: left; }
+.prose th {
+  background: var(--surface-2);
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ---------- 12. Responsive ---------- */
+@media (max-width: 1100px) {
+  .grid--4 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 1000px) {
+  .shell { grid-template-columns: minmax(0, 1fr); }
+  .rail { position: static; }
+  /* Article only: the rail carries the contents box, and above the body is
+     where that is useful. On a feed page the rail is trending + an ad, which
+     must never come before the stories. */
+  .shell--article > .rail { order: -1; }
+  .hero { grid-template-columns: minmax(0, 1fr); }
+  .hero-main { min-height: 320px; }
+}
+@media (max-width: 800px) {
+  .grid--4, .grid--3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 540px) {
+  .grid--4, .grid--3, .grid--2, .grid { grid-template-columns: minmax(0, 1fr); }
+  .hero-copy { padding: 18px; }
+  .card--row .card-media { width: 96px; }
+}
+
+/* Box art is portrait, so it stays two-up on phones - one full-width 3:4 tile
+   per row would be most of a screen for a single game. */
+@media (max-width: 540px) {
+  .games { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .game-card { padding: 11px; }
+  .game-card .g-name { font-size: 0.92rem; }
+  .game-card .g-count { font-size: 0.66rem; letter-spacing: 0.1em; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

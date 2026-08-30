@@ -1,0 +1,243 @@
+---
+import { CATEGORIES } from '../consts';
+import Logo from './Logo.astro';
+
+/** Current top-level section, so the matching nav item lights up in its own colour. */
+const path = Astro.url.pathname;
+const active = CATEGORIES.find((c) => path.startsWith(c.href))?.id;
+---
+
+<header class="site-header">
+  <div class="wrap bar">
+    <Logo />
+
+    <nav id="primary-nav" class="nav" aria-label="Primary">
+      <ul>
+        {
+          CATEGORIES.map((c) => (
+            <li data-cat={c.id}>
+              <a href={c.href} class={active === c.id ? 'is-active' : ''} aria-current={active === c.id ? 'page' : undefined}>
+                {c.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="actions">
+      <button class="icon-btn" type="button" data-search-open aria-label="Search">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="11" cy="11" r="7"></circle>
+          <path d="M20 20l-3.5-3.5"></path>
+        </svg>
+      </button>
+
+      <a class="btn btn--signup" href="/signup/">Sign up</a>
+
+      <button
+        class="burger"
+        type="button"
+        aria-expanded="false"
+        aria-controls="primary-nav"
+        aria-label="Open menu"
+      >
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(8, 8, 11, 0.88);
+    backdrop-filter: blur(12px) saturate(140%);
+    border-bottom: 1px solid var(--border-soft);
+  }
+
+  .bar {
+    height: var(--header-h);
+    display: flex;
+    align-items: center;
+    gap: 32px;
+  }
+
+
+  /* ---- Nav ---- */
+  .nav ul {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .nav a {
+    display: block;
+    position: relative;
+    font-family: var(--font-display);
+    font-size: 1.02rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.13em;
+    color: var(--text-2);
+    padding: 10px 14px;
+    transition: color 0.15s var(--ease);
+  }
+  /* The underline is the category colour - the nav teaches the colour code. */
+  .nav a::after {
+    content: "";
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    bottom: 4px;
+    height: 2px;
+    background: var(--c);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.2s var(--ease);
+  }
+  .nav a:hover {
+    color: var(--c);
+  }
+  .nav a:hover::after,
+  .nav a.is-active::after {
+    transform: scaleX(1);
+  }
+  .nav a.is-active {
+    color: var(--c);
+  }
+
+  /* ---- Right-hand actions ---- */
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+    flex: none;
+  }
+
+  .icon-btn {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-2);
+    cursor: pointer;
+    transition: color 0.15s var(--ease), border-color 0.15s var(--ease);
+  }
+  .icon-btn svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+  .icon-btn:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  /* The one filled button on the page - the accent belongs to the CTA. */
+  .btn--signup {
+    background: var(--accent);
+    color: var(--accent-ink);
+    /* Fixed height so it lines up exactly with the search button beside it. */
+    height: 36px;
+    padding: 0 18px;
+    font-size: 0.88rem;
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+  }
+  .btn--signup:hover {
+    background: var(--accent-soft);
+    box-shadow: 0 0 22px var(--accent-glow);
+  }
+
+  /* ---- Mobile ---- */
+  .burger {
+    display: none;
+    background: none;
+    border: 0;
+    padding: 8px;
+    cursor: pointer;
+  }
+  .burger span {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: var(--text);
+    border-radius: 2px;
+  }
+  .burger span + span {
+    margin-top: 5px;
+  }
+
+  @media (max-width: 860px) {
+    .bar {
+      gap: 16px;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .burger {
+      display: block;
+    }
+    .nav {
+      position: absolute;
+      inset: var(--header-h) 0 auto 0;
+      background: var(--bg-elev);
+      border-bottom: 1px solid var(--border);
+      display: none;
+    }
+    .nav[data-open="true"] {
+      display: block;
+    }
+    .nav ul {
+      flex-direction: column;
+      align-items: stretch;
+      padding: 8px 20px 16px;
+    }
+    .nav a {
+      padding: 13px 0;
+      border-bottom: 1px solid var(--border-soft);
+      font-size: 1.1rem;
+    }
+    .nav a::after {
+      left: 0;
+      right: auto;
+      width: 26px;
+      bottom: 6px;
+    }
+  }
+
+  /* Narrow phones: keep the CTA, drop its padding rather than the button. */
+  @media (max-width: 420px) {
+    .actions {
+      gap: 6px;
+    }
+    .btn--signup {
+      padding: 8px 12px;
+      font-size: 0.82rem;
+    }
+  }
+</style>
+
+<script>
+  const burger = document.querySelector<HTMLButtonElement>('.burger');
+  const nav = document.querySelector<HTMLElement>('#primary-nav');
+
+  burger?.addEventListener('click', () => {
+    const open = nav?.dataset.open === 'true';
+    if (nav) nav.dataset.open = String(!open);
+    burger.setAttribute('aria-expanded', String(!open));
+    burger.setAttribute('aria-label', open ? 'Open menu' : 'Close menu');
+  });
+</script>

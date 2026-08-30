@@ -1,0 +1,32 @@
+---
+/**
+ * The banner band that sits directly under the site header, on every page.
+ *
+ * Deliberately NOT sticky: it is bought as the first impression of the page,
+ * scrolls away with the masthead, and leaves the reader's viewport to the
+ * article. The unit that follows you down the page is the bottom anchor.
+ *
+ * Height is reserved by AdSlot before any ad script runs, so filling it later
+ * cannot push the page down.
+ */
+import AdSlot from './AdSlot.astro';
+
+interface Props {
+  /** Stable identifier - use it as the AdSense data-ad-slot / GAM unit name. */
+  id: string;
+}
+
+const { id } = Astro.props;
+---
+
+<div class="ad-band">
+  <div class="wrap">
+    <AdSlot id={id} format="leaderboard" />
+  </div>
+</div>
+
+<style>
+  .ad-band {
+    padding-top: 22px;
+  }
+</style>

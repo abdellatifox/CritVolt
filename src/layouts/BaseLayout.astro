@@ -1,0 +1,100 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import AdBand from '../components/AdBand.astro';
+import Footer from '../components/Footer.astro';
+import SearchOverlay from '../components/SearchOverlay.astro';
+import { SITE } from '../consts';
+
+/**
+ * Every page renders through this. It owns the <head>, which means SEO can
+ * never drift between page types: one canonical strategy, one OG strategy,
+ * one place to add analytics or an ad script.
+ */
+interface Props {
+  title: string;
+  description?: string;
+  /** Absolute or root-relative social image. */
+  image?: string;
+  /** Article pages pass "article" so Open Graph is correct. */
+  ogType?: 'website' | 'article';
+  /** Set true on thin pages (pagination, tags) you do not want indexed. */
+  noindex?: boolean;
+  /** Any structured-data objects to embed. */
+  jsonLd?: Record<string, unknown>[];
+  /** Set false to drop the banner band (sign-up, 404). */
+  ads?: boolean;
+}
+
+const {
+  title,
+  description = SITE.description,
+  image = '/og-default.png',
+  ogType = 'website',
+  noindex = false,
+  jsonLd = [],
+  ads = true,
+} = Astro.props;
+
+/** Ad unit names carry the route, so reporting is readable per section. */
+const adKey = (Astro.url.pathname.split('/').filter(Boolean)[0] ?? 'home').toLowerCase();
+
+const canonical = new URL(Astro.url.pathname, Astro.site ?? SITE.url).href;
+const ogImage = new URL(image, Astro.site ?? SITE.url).href;
+const fullTitle = title === SITE.name ? `${SITE.name} — ${SITE.tagline}` : `${title} | ${SITE.name}`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="theme-color" content={SITE.themeColor} />
+
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex, follow" />}
+
+    <!-- Open Graph / Twitter -->
+    <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content={SITE.twitter} />
+
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" href="/favicon.png" type="image/png" sizes="256x256" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="alternate" type="application/rss+xml" title={SITE.name} href="/rss.xml" />
+
+    <!-- Fonts: preconnect first so the display face is not render-blocking for long. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&display=swap"
+    />
+
+    {
+      jsonLd.map((data) => (
+        <script is:inline type="application/ld+json" set:html={JSON.stringify(data)} />
+      ))
+    }
+  </head>
+
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <Header />
+    {ads && <AdBand id={`${adKey}-band-leaderboard`} />}
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+    <SearchOverlay />
+  </body>
+</html>

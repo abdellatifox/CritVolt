@@ -1,0 +1,720 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+import ProductCard from '../../components/ProductCard.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import ScoreBadge from '../../components/ScoreBadge.astro';
+import Thumb from '../../components/Thumb.astro';
+import AffiliateDisclosure from '../../components/AffiliateDisclosure.astro';
+import ReadingProgress from '../../components/ReadingProgress.astro';
+import AdAnchor from '../../components/AdAnchor.astro';
+import ShareRow from '../../components/ShareRow.astro';
+import PrevNext from '../../components/PrevNext.astro';
+import BackToTop from '../../components/BackToTop.astro';
+import { CATEGORIES, CATEGORY_MAP, SITE, type CategoryId } from '../../consts';
+import {
+  getAllPosts,
+  getSection,
+  related,
+  adjacent,
+  formatDate,
+  readingMinutes,
+  type Post,
+} from '../../lib/posts';
+
+/** One route serves all four sections: /guides/x, /news/x, /reviews/x, /setup/x */
+export async function getStaticPaths() {
+  const paths = [];
+
+  for (const c of CATEGORIES) {
+    const entries = await getCollection(c.id as any);
+    for (const entry of entries as any[]) {
+      if (entry.data.draft && !import.meta.env.DEV) continue;
+      paths.push({ params: { category: c.id, slug: entry.id }, props: { entry } });
+    }
+  }
+
+  return paths;
+}
+
+const { category } = Astro.params as { category: CategoryId };
+const { entry } = Astro.props as { entry: any };
+const cat = CATEGORY_MAP[category];
+const d = entry.data;
+
+const { Content, headings } = await render(entry);
+
+const post: Post = { ...entry, category, url: `/${category}/${entry.id}/` };
+const all = await getAllPosts();
+const more = related(post, all, 4);
+
+// Older / newer article in this same section.
+const { prev, next } = adjacent(post, await getSection(category));
+
+const products = (d.products ?? []) as any[];
+const hasAffiliate = products.length > 0;
+
+// The contents box lists top-level sections only.
+const toc = headings.filter((h: any) => h.depth === 2);
+
+/** One letter is all the chip carries. */
+const initial = String(d.author).trim().charAt(0).toUpperCase();
+
+const canonicalUrl = `${SITE.url}/${category}/${entry.id}/`;
+
+const articleSchema: Record<string, unknown> = {
+  '@context': 'https://schema.org',
+  '@type': category === 'news' ? 'NewsArticle' : 'Article',
+  headline: d.title,
+  description: d.description,
+  datePublished: d.pubDate.toISOString(),
+  dateModified: (d.updatedDate ?? d.pubDate).toISOString(),
+  author: { '@type': 'Person', name: d.author },
+  publisher: { '@type': 'Organization', name: SITE.name, url: SITE.url },
+  mainEntityOfPage: canonicalUrl,
+};
+
+// A scored review gets Review schema instead - this is what earns the star
+// rating in Google results, which is the single biggest CTR win on this site.
+const reviewSchema =
+  category === 'reviews'
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'Review',
+        itemReviewed: { '@type': 'VideoGame', name: d.game },
+        reviewRating: {
+          '@type': 'Rating',
+          ratingValue: d.score,
+          bestRating: 10,
+          worstRating: 0,
+        },
+        author: { '@type': 'Person', name: d.author },
+        publisher: { '@type': 'Organization', name: SITE.name },
+        datePublished: d.pubDate.toISOString(),
+        reviewBody: d.verdict,
+      }
+    : null;
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: SITE.url },
+    { '@type': 'ListItem', position: 2, name: cat.label, item: `${SITE.url}${cat.href}` },
+    { '@type': 'ListItem', position: 3, name: d.title, item: canonicalUrl },
+  ],
+};
+
+const jsonLd = [articleSchema, breadcrumbSchema, ...(reviewSchema ? [reviewSchema] : [])];
+---
+
+<BaseLayout
+  title={d.title}
+  description={d.description}
+  image={d.cover}
+  ogType="article"
+  jsonLd={jsonLd}
+>
+  <article data-cat={category}>
+    <ReadingProgress />
+
+    <div class="wrap">
+      <div class="hero-split">
+        <div class="hero-head">
+          <nav class="crumbs" aria-label="Breadcrumb">
+            <a href="/">Home</a>
+            <span>/</span>
+            <a href={cat.href}>{cat.label}</a>
+          </nav>
+
+          <header class="art-head">
+            <span class="tag tag--solid">{cat.label}</span>
+            <h1>{d.title}</h1>
+            <p class="standfirst">{d.description}</p>
+
+            <div class="byline" data-byline>
+              <span class="avatar" aria-hidden="true">{initial}</span>
+
+              <span class="who">By <b>{d.author}</b></span>
+
+              <i class="dot" aria-hidden="true"></i>
+              <time class="stat" datetime={d.pubDate.toISOString()}>
+                {formatDate(d.pubDate)}
+              </time>
+
+              {
+                d.updatedDate && (
+                  <>
+                    <i class="dot" aria-hidden="true" />
+                    <time class="stat" datetime={d.updatedDate.toISOString()}>
+                      Upd {formatDate(d.updatedDate)}
+                    </time>
+                  </>
+                )
+              }
+
+              <i class="dot" aria-hidden="true"></i>
+              <span class="stat">{readingMinutes(entry.body)} min</span>
+            </div>
+          </header>
+        </div>
+
+        <div class="hero-ad">
+          <AdSlot id={`${category}-hero-rect`} format="rect" />
+        </div>
+      </div>
+
+      <figure class="art-cover">
+        <div class="art-cover-frame">
+          <Thumb
+            src={d.cover}
+            alt={d.coverAlt ?? d.title}
+            seed={entry.id}
+            label={d.game ?? d.title}
+            eager={true}
+            width={1200}
+            height={675}
+          />
+        </div>
+        {d.coverCredit && <figcaption>{d.coverCredit}</figcaption>}
+      </figure>
+    </div>
+
+    <div class="wrap shell shell--article">
+      <div class="art-main">
+        {hasAffiliate && <AffiliateDisclosure />}
+
+        {
+          category === 'reviews' && (
+            <section class="verdict" aria-label="Verdict">
+              <ScoreBadge score={d.score} />
+              <div>
+                <h2>Verdict</h2>
+                <p>{d.verdict}</p>
+                {d.platforms?.length > 0 && (
+                  <p class="platforms">Reviewed on {d.platforms.join(', ')}</p>
+                )}
+              </div>
+            </section>
+          )
+        }
+
+        {
+          category === 'reviews' && (d.pros?.length > 0 || d.cons?.length > 0) && (
+            <section class="proscons">
+              <div>
+                <h3>What we liked</h3>
+                <ul class="pro">
+                  {d.pros.map((p: string) => (
+                    <li>{p}</li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h3>What we didn't</h3>
+                <ul class="con">
+                  {d.cons.map((c: string) => (
+                    <li>{c}</li>
+                  ))}
+                </ul>
+              </div>
+            </section>
+          )
+        }
+
+        {
+          hasAffiliate && (
+            <nav class="quicklist" aria-label="Our picks at a glance">
+              <h2>Our picks at a glance</h2>
+              <ol>
+                {products.map((p, i) => (
+                  <li>
+                    <a href={`#pick-${i + 1}`}>
+                      <b>{p.award ?? `Pick ${i + 1}`}</b>
+                      <span>{p.name}</span>
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            </nav>
+          )
+        }
+
+        <div class="prose">
+          <Content />
+        </div>
+
+        {
+          hasAffiliate && (
+            <section class="picks" aria-label="Recommended products">
+              <div class="section-head">
+                <h2>The picks in full</h2>
+              </div>
+              {products.map((p, i) => (
+                <div id={`pick-${i + 1}`}>
+                  <ProductCard product={p} subId={entry.id} rank={i + 1} />
+                </div>
+              ))}
+            </section>
+          )
+        }
+
+        {d.tags?.length > 0 && (
+          <ul class="tags" aria-label="Tags">
+            {d.tags.map((t: string) => <li>{t}</li>)}
+          </ul>
+        )}
+
+        <ShareRow title={d.title} url={post.url} />
+
+        <PrevNext prev={prev} next={next} />
+
+        {
+          more.length > 0 && (
+            <section class="section" aria-labelledby="more-h">
+              <div class="section-head">
+                <h2 id="more-h">Read next</h2>
+              </div>
+              <div class="grid grid--4">
+                {more.map((p) => (
+                  <ArticleCard post={p} />
+                ))}
+              </div>
+            </section>
+          )
+        }
+      </div>
+
+      <aside class="rail" aria-label="Sidebar">
+        <AdSlot id={`${category}-rail-rect`} format="rect" class="rail-ad" />
+
+        {
+          toc.length > 1 && (
+            <nav class="panel toc" aria-label="On this page">
+              <h2 class="panel-head">On this page</h2>
+              <ol>
+                {toc.map((h: any, i: number) => (
+                  <li>
+                    <a href={`#${h.slug}`} data-toc-link={h.slug}>
+                      <span class="toc-n">{String(i + 1).padStart(2, '0')}</span>
+                      <span class="toc-t">{h.text}</span>
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            </nav>
+          )
+        }
+      </aside>
+    </div>
+  </article>
+
+  <AdAnchor id={`${category}-anchor`} />
+
+  <BackToTop />
+</BaseLayout>
+
+<style>
+  /* Headline column + the 300x250 beside it. The ad column is sticky so it
+     stays with the reader through the standfirst and the cover shot. */
+  .hero-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 40px;
+    align-items: start;
+  }
+  .hero-ad {
+    position: sticky;
+    top: calc(var(--header-h) + 20px);
+  }
+
+  /* Breadcrumb as a HUD trail: mono caps, chevrons in the section colour. */
+  .crumbs {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-family: var(--font-display);
+    font-size: 0.74rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+    padding-top: 22px;
+  }
+  .crumbs span {
+    color: var(--c);
+    opacity: 0.75;
+  }
+  .crumbs a {
+    transition: color 0.15s var(--ease);
+  }
+  .crumbs a:hover {
+    color: var(--c);
+  }
+
+  .art-head {
+    max-width: 74ch;
+    padding-block: 16px 22px;
+    display: grid;
+    gap: 12px;
+  }
+  /* Grid item, so without this the chip stretches the whole column. */
+  .art-head .tag {
+    justify-self: start;
+  }
+  .art-head h1 {
+    font-size: clamp(2.1rem, 5.2vw, 3.6rem);
+    text-wrap: balance;
+  }
+  .standfirst {
+    font-size: 1.12rem;
+    color: var(--text-2);
+    line-height: 1.55;
+  }
+  /* ---- Byline ----
+     One line, no panel. The only piece of colour is the initial plate, and it
+     is the brand red rather than the section hue - the author is the site
+     speaking, not the section. */
+  .byline {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+    font-size: 0.86rem;
+    color: var(--muted);
+  }
+
+  .avatar {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--accent-ink);
+    background: var(--accent);
+    border-radius: 4px;
+  }
+
+  .who b {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .dot {
+    flex: none;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.65;
+  }
+
+  /* Date and read time are readouts, so they get the display face and caps. */
+  .stat {
+    font-family: var(--font-display);
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .art-cover {
+    margin-bottom: 34px;
+  }
+  .art-cover-frame {
+    aspect-ratio: 16 / 9;
+    max-height: 520px;
+    overflow: hidden;
+    border-radius: var(--radius);
+    background: var(--surface-2);
+  }
+  .art-cover :global(.thumb),
+  .art-cover :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  /* Attribution line. Small on purpose, but always present when we know the
+     source - it is what keeps press-kit and store artwork usable. */
+  .art-cover figcaption {
+    margin-top: 8px;
+    font-size: 0.76rem;
+    color: var(--muted);
+    text-align: right;
+  }
+
+  .art-main {
+    min-width: 0;
+  }
+
+  /* ---- Review furniture ---- */
+  .verdict {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-left: 3px solid var(--c);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 22px;
+  }
+  .verdict h2 {
+    font-size: 1.2rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+  .verdict p {
+    color: var(--text-2);
+    line-height: 1.6;
+  }
+  .platforms {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+
+  .proscons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 26px;
+  }
+  .proscons h3 {
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .proscons ul {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 7px;
+    font-size: 0.94rem;
+  }
+  .proscons li {
+    position: relative;
+    padding-left: 20px;
+    color: var(--text-2);
+    line-height: 1.5;
+  }
+  .proscons .pro li::before {
+    content: "+";
+    position: absolute;
+    left: 0;
+    color: var(--score-good);
+    font-weight: 700;
+  }
+  .proscons .con li::before {
+    content: "-";
+    position: absolute;
+    left: 0;
+    color: var(--score-bad);
+    font-weight: 700;
+  }
+
+  /* ---- Affiliate quick list ---- */
+  .quicklist {
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 26px;
+  }
+  .quicklist h2 {
+    font-size: 1.15rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 12px;
+  }
+  .quicklist ol {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 2px;
+  }
+  .quicklist a {
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .quicklist li:last-child a {
+    border-bottom: 0;
+  }
+  .quicklist b {
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--cat-setup);
+    flex: none;
+    min-width: 108px;
+  }
+  .quicklist span {
+    color: var(--text-2);
+    font-size: 0.95rem;
+  }
+  .quicklist a:hover span {
+    color: var(--accent);
+  }
+
+  .picks {
+    margin-top: 40px;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    list-style: none;
+    padding: 0;
+    margin-top: 34px;
+  }
+  /* Tags take the section hue rather than the brand red - metadata and chrome
+     should never read as the same thing. */
+  .tags li {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--c);
+    border: 1px solid color-mix(in srgb, var(--c) 32%, transparent);
+    background: color-mix(in srgb, var(--c) 7%, transparent);
+    border-radius: 2px;
+    padding: 5px 10px;
+  }
+
+  /* ---- Rail ---- */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius);
+    padding: 18px;
+  }
+  .panel-head {
+    font-size: 1.05rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    border-bottom: 2px solid var(--c);
+  }
+  .toc ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+  }
+  .toc a {
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+    font-size: 0.9rem;
+    color: var(--text-2);
+    line-height: 1.4;
+    padding: 7px 0 7px 13px;
+    /* The left edge is a continuous spine; the active item lights its segment,
+       so the eye can see progress down the article at a glance. */
+    border-left: 2px solid var(--border);
+    transition: color 0.15s var(--ease), border-color 0.15s var(--ease);
+  }
+  .toc .toc-n {
+    font-family: var(--font-display);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    flex: none;
+    transition: color 0.15s var(--ease);
+  }
+  .toc a:hover {
+    color: var(--c);
+    border-left-color: var(--c);
+  }
+  .toc a[aria-current="true"] {
+    color: var(--c);
+    border-left-color: var(--c);
+  }
+  .toc a[aria-current="true"] .toc-n,
+  .toc a:hover .toc-n {
+    color: var(--c);
+  }
+  .toc a[aria-current="true"] .toc-t {
+    font-weight: 600;
+  }
+
+  /* One column. The rail moves above the article body so the contents box is
+     the first thing under the headline, and its ad drops out - a 300x250
+     stacked on top of the in-flow one below the head would be the same unit
+     twice in a row. */
+  @media (max-width: 1000px) {
+    .hero-split {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0;
+    }
+    .hero-ad {
+      position: static;
+      margin-bottom: 26px;
+    }
+    .rail :global(.rail-ad) {
+      display: none;
+    }
+  }
+
+  /* Anchor beside each heading, injected by the contents script. Invisible
+     until you hover the heading, so it never competes with the text. */
+  .art-main :global(.heading-anchor) {
+    margin-left: 0.4em;
+    font-size: 0.7em;
+    font-weight: 400;
+    color: var(--c);
+    opacity: 0;
+    text-decoration: none;
+    transition: opacity 0.15s var(--ease);
+  }
+  .art-main :global(h2:hover .heading-anchor),
+  .art-main :global(h3:hover .heading-anchor),
+  .art-main :global(.heading-anchor:focus-visible) {
+    opacity: 0.7;
+  }
+  .art-main :global(.heading-anchor:hover) {
+    opacity: 1;
+  }
+
+  /* Landing on a section from the contents list flashes its heading, so the
+     reader can see where the jump actually put them. */
+  .art-main :global(.prose h2:target),
+  .art-main :global(.prose h3:target) {
+    animation: target-flash 1.4s var(--ease);
+  }
+  @keyframes target-flash {
+    0%, 40% {
+      color: var(--c);
+    }
+    100% {
+      color: inherit;
+    }
+  }
+
+  @media (max-width: 620px) {
+    .verdict {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+</style>

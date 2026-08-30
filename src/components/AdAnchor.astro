@@ -1,0 +1,113 @@
+---
+/**
+ * Bottom anchor ad, on article pages only.
+ *
+ * It stays out of the way until the reader has actually committed to the
+ * piece: nothing shows while the headline and byline are still on screen, and
+ * it appears only once the byline has scrolled past the top edge. Closing it
+ * takes it down for the rest of the page.
+ */
+import AdSlot from './AdSlot.astro';
+
+interface Props {
+  /** Stable identifier - use it as the AdSense data-ad-slot / GAM unit name. */
+  id: string;
+}
+
+const { id } = Astro.props;
+---
+
+<div class="ad-anchor" data-anchor>
+  <button type="button" class="close" data-anchor-close aria-label="Close advertisement">&#10005;</button>
+  <AdSlot id={id} format="leaderboard" />
+</div>
+
+<script>
+  (() => {
+    // HTMLElement rather than Element: the panel's own height is what gets
+    // published, and offsetHeight only exists on the HTML interface.
+    const anchor = document.querySelector<HTMLElement>('[data-anchor]');
+    // The byline is the trigger: past it, the reader is reading.
+    const byline = document.querySelector<HTMLElement>('[data-byline]');
+    const close = anchor?.querySelector<HTMLButtonElement>('[data-anchor-close]');
+    // No anchor, no byline (a listing page) or no close button: nothing to run.
+    if (!anchor || !byline || !close) return;
+
+    let closed = false;
+    let ticking = false;
+
+    const apply = () => {
+      ticking = false;
+      if (closed) return;
+      const on = byline.getBoundingClientRect().bottom < 0;
+      anchor.classList.toggle('is-visible', on);
+      // Published so the back-to-top button can step over the panel.
+      document.documentElement.style.setProperty(
+        '--anchor-h',
+        on ? anchor.offsetHeight + 'px' : '0px',
+      );
+    };
+
+    addEventListener(
+      'scroll',
+      () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(apply);
+      },
+      { passive: true },
+    );
+    addEventListener('resize', apply, { passive: true });
+
+    close.addEventListener('click', () => {
+      closed = true;
+      anchor.classList.remove('is-visible');
+      document.documentElement.style.setProperty('--anchor-h', '0px');
+    });
+
+    apply();
+  })();
+</script>
+
+<style>
+  .ad-anchor {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 55;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 12px 12px;
+    background: var(--surface-2);
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.35);
+  }
+  .ad-anchor.is-visible {
+    display: flex;
+  }
+
+  /* order:-1 puts the button above the creative, flush right - the tap target
+     is never inside the ad itself. */
+  .close {
+    order: -1;
+    align-self: flex-end;
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    margin: 5px 0;
+    font-size: 12px;
+    background: var(--surface-3);
+    border: 1px solid var(--border);
+    color: var(--text-2);
+    cursor: pointer;
+    /* Clipped corners, matching the site's angled furniture. */
+    clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
+  }
+  .close:hover {
+    color: var(--text);
+    border-color: var(--accent);
+  }
+</style>

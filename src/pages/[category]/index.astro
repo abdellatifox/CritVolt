@@ -1,0 +1,142 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import { CATEGORIES, CATEGORY_MAP, SITE, PAGE_SIZE, type CategoryId } from '../../consts';
+import { getSection } from '../../lib/posts';
+
+/** One archive per section. Adding a section to consts.ts creates its archive. */
+export function getStaticPaths() {
+  return CATEGORIES.map((c) => ({ params: { category: c.id } }));
+}
+
+const { category } = Astro.params as { category: CategoryId };
+const cat = CATEGORY_MAP[category];
+const posts = await getSection(category);
+
+const lead = posts[0];
+const rest = posts.slice(1, PAGE_SIZE);
+const hasNext = posts.length > PAGE_SIZE;
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: `${cat.label} — ${SITE.name}`,
+    description: cat.intro,
+    url: `${SITE.url}${cat.href}`,
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: SITE.url },
+      { '@type': 'ListItem', position: 2, name: cat.label, item: `${SITE.url}${cat.href}` },
+    ],
+  },
+];
+---
+
+<BaseLayout title={cat.label} description={cat.intro} jsonLd={jsonLd}>
+  <div class="wrap" data-cat={category}>
+    <header class="archive-head">
+      <p class="eyebrow">Section</p>
+      <h1>{cat.label}</h1>
+      <p class="archive-intro">{cat.intro}</p>
+    </header>
+  </div>
+
+  <div class="wrap shell" data-cat={category}>
+    <div>
+      {
+        lead && (
+          <div class="lead">
+            <ArticleCard post={lead} showExcerpt={true} eager={true} />
+          </div>
+        )
+      }
+
+      <div class="grid grid--3 archive-grid">
+        {rest.map((p) => <ArticleCard post={p} />)}
+      </div>
+
+      {
+        posts.length === 0 && (
+          <p class="empty">
+            Nothing published in this section yet. Drop a Markdown file in{' '}
+            <code>src/content/{category}/</code> and it appears here.
+          </p>
+        )
+      }
+
+      {
+        hasNext && (
+          <nav class="pager" aria-label="Pagination">
+            <a class="btn btn--ghost" href={`${cat.href}page/2/`}>
+              Next page &rsaquo;
+            </a>
+          </nav>
+        )
+      }
+    </div>
+
+    <aside class="rail" aria-label="Sidebar">
+      <AdSlot id={`${category}-rail-rect`} format="rect" />
+    </aside>
+  </div>
+</BaseLayout>
+
+<style>
+  .archive-head {
+    padding-block: 34px 22px;
+    border-bottom: 1px solid var(--border-soft);
+    margin-bottom: 22px;
+  }
+  .archive-head h1 {
+    font-size: clamp(2.4rem, 6vw, 4rem);
+    text-transform: uppercase;
+    line-height: 0.95;
+    margin: 6px 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .archive-head h1::before {
+    content: "";
+    width: 8px;
+    height: 0.86em;
+    background: var(--c);
+    border-radius: 1px;
+  }
+  .archive-intro {
+    color: var(--text-2);
+    max-width: 68ch;
+    font-size: 1.02rem;
+  }
+
+  .lead {
+    margin-block: 26px;
+  }
+  .lead :global(.card-title) {
+    font-size: 1.7rem;
+  }
+  .archive-grid {
+    margin-top: 26px;
+  }
+
+  .empty {
+    color: var(--muted);
+    padding: 40px 0;
+  }
+  .empty code {
+    background: var(--surface-2);
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+
+  .pager {
+    display: flex;
+    justify-content: center;
+    margin-top: 36px;
+  }
+</style>

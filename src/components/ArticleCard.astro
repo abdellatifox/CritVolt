@@ -1,0 +1,54 @@
+---
+import Thumb from './Thumb.astro';
+import ScoreBadge from './ScoreBadge.astro';
+import { CATEGORY_MAP } from '../consts';
+import { formatDate, type Post } from '../lib/posts';
+
+/**
+ * The single card used everywhere: homepage grids, section rails, archives,
+ * related posts. One component means one place to change how a headline looks.
+ */
+interface Props {
+  post: Post;
+  /** row = thumbnail beside the text (sidebars, hero rail). */
+  variant?: 'grid' | 'row';
+  showExcerpt?: boolean;
+  eager?: boolean;
+}
+
+const { post, variant = 'grid', showExcerpt = false, eager = false } = Astro.props;
+const cat = CATEGORY_MAP[post.category];
+const score = (post.data as any).score as number | undefined;
+const game = (post.data as any).game as string | undefined;
+---
+
+<article class={`card ${variant === 'row' ? 'card--row' : ''}`} data-cat={post.category}>
+  <div class="card-media">
+    <Thumb
+      src={post.data.cover}
+      alt={post.data.coverAlt ?? post.data.title}
+      seed={post.id}
+      label={game ?? post.data.title}
+      eager={eager}
+    />
+    {variant === 'grid' && <span class="tag tag--solid card-tag">{cat.label}</span>}
+    {
+      variant === 'grid' && typeof score === 'number' && (
+        <ScoreBadge score={score} size="sm" class="card-score" />
+      )
+    }
+  </div>
+
+  <div class="card-body">
+    {variant === 'row' && <span class="tag">{cat.label}</span>}
+    <h3 class="card-title">
+      <a href={post.url} class="card-link">{post.data.title}</a>
+    </h3>
+    {showExcerpt && <p class="card-excerpt">{post.data.description}</p>}
+    <div class="card-meta">
+      <span>{post.data.author}</span>
+      <i class="dot"></i>
+      <time datetime={post.data.pubDate.toISOString()}>{formatDate(post.data.pubDate)}</time>
+    </div>
+  </div>
+</article>

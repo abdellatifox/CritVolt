@@ -1,0 +1,209 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE, CATEGORIES, NEWSLETTER_ACTION } from '../consts';
+
+const perks = [
+  'One email a week — the guides, reviews and hardware picks worth your time.',
+  'Early access to buying guides before prices move.',
+  'No autoplay, no push notifications, no selling your address.',
+];
+---
+
+<BaseLayout
+  title="Sign up"
+  description={`Get the best of ${SITE.name} once a week: guides, reviews and tested hardware picks. No spam, unsubscribe anytime.`}
+>
+  <div class="wrap signup">
+    <div class="signup-copy">
+      <p class="eyebrow">Newsletter</p>
+      <h1>Join <span>CritVolt</span></h1>
+      <p class="lead">
+        The week in games, cut down to what is actually worth reading. Guides that
+        answer the question, reviews with a verdict, and hardware picks we have tested.
+      </p>
+
+      <ul class="perks">
+        {perks.map((p) => <li>{p}</li>)}
+      </ul>
+
+      <form class="signup-form" action={NEWSLETTER_ACTION} method="post">
+        <label class="sr-only" for="email">Email address</label>
+        <input
+          id="email"
+          type="email"
+          name="email"
+          required
+          placeholder="you@example.com"
+          autocomplete="email"
+        />
+        <button class="btn btn--buy" type="submit">Sign up</button>
+      </form>
+
+      <p class="small">
+        We use your address for this newsletter and nothing else. Unsubscribe from any
+        email in one click.
+      </p>
+
+      {
+        import.meta.env.DEV && !NEWSLETTER_ACTION && (
+          <p class="devnote">
+            Dev note: this form has no endpoint yet. Set <code>NEWSLETTER_ACTION</code> in{' '}
+            <code>src/consts.ts</code> to your email provider's form URL.
+          </p>
+        )
+      }
+    </div>
+
+    <aside class="signup-side">
+      <h2>What you get</h2>
+      <ul>
+        {
+          CATEGORIES.map((c) => (
+            <li data-cat={c.id}>
+              <b>{c.label}</b>
+              <span>{c.blurb}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </aside>
+  </div>
+</BaseLayout>
+
+<style>
+  .signup {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: 56px;
+    align-items: start;
+    padding-block: 56px 40px;
+  }
+
+  h1 {
+    font-size: clamp(2.4rem, 6vw, 3.8rem);
+    text-transform: uppercase;
+    margin: 8px 0 14px;
+  }
+  h1 span {
+    color: var(--accent);
+  }
+  .lead {
+    font-size: 1.1rem;
+    color: var(--text-2);
+    max-width: 56ch;
+  }
+
+  .perks {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 10px;
+    margin: 24px 0 30px;
+  }
+  .perks li {
+    position: relative;
+    padding-left: 24px;
+    color: var(--text-2);
+  }
+  .perks li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.55em;
+    width: 10px;
+    height: 2px;
+    background: var(--accent);
+  }
+
+  .signup-form {
+    display: flex;
+    gap: 10px;
+    max-width: 520px;
+  }
+  .signup-form input {
+    flex: 1;
+    min-width: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    outline: none;
+    transition: border-color 0.15s var(--ease);
+  }
+  .signup-form input:focus {
+    border-color: var(--accent);
+  }
+  .signup-form input::placeholder {
+    color: var(--muted);
+  }
+
+  .small {
+    margin-top: 14px;
+    font-size: 0.82rem;
+    color: var(--muted);
+    max-width: 52ch;
+  }
+  .devnote {
+    margin-top: 18px;
+    font-size: 0.82rem;
+    color: var(--cat-news);
+    border-left: 2px solid var(--cat-news);
+    padding-left: 12px;
+  }
+  .devnote code {
+    background: var(--surface-2);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  .signup-side {
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius);
+    padding: 22px;
+  }
+  .signup-side h2 {
+    font-size: 1.05rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--accent);
+    margin-bottom: 6px;
+  }
+  .signup-side ul {
+    list-style: none;
+    padding: 0;
+  }
+  .signup-side li {
+    display: grid;
+    gap: 3px;
+    padding: 13px 0;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .signup-side li:last-child {
+    border-bottom: 0;
+  }
+  .signup-side b {
+    font-family: var(--font-display);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--c);
+  }
+  .signup-side span {
+    font-size: 0.9rem;
+    color: var(--text-2);
+  }
+
+  @media (max-width: 900px) {
+    .signup {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 34px;
+    }
+  }
+  @media (max-width: 480px) {
+    .signup-form {
+      flex-direction: column;
+    }
+  }
+</style>

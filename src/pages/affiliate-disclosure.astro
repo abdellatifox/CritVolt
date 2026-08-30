@@ -1,0 +1,78 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../consts';
+---
+
+<BaseLayout
+  title="Affiliate Disclosure"
+  description={`How ${SITE.name} uses affiliate links and advertising, and what that means for our recommendations.`}
+>
+  <div class="wrap page">
+    <h1>Affiliate Disclosure</h1>
+
+    <div class="prose">
+      <p>
+        <strong>{SITE.name} is reader-supported.</strong> Some links on this site are
+        affiliate links. If you click one and buy something, we may earn a commission
+        from the retailer. The price you pay is exactly the same either way.
+      </p>
+
+      <h2>Which links are affiliate links</h2>
+      <p>
+        Any link that sends you to a store to buy a product — graphics cards, prebuilt
+        PCs, monitors, peripherals, and occasionally games. These are marked with a
+        "Check price" button and carry a <code>rel="sponsored"</code> attribute so search
+        engines can identify them. Links to other articles, official sources, patch notes
+        and developer statements are never monetised.
+      </p>
+
+      <h2>Programmes we participate in</h2>
+      <p>
+        As an Amazon Associate we earn from qualifying purchases. We also work with other
+        retailer and manufacturer affiliate programmes through affiliate networks.
+      </p>
+
+      <h2>How this affects our recommendations</h2>
+      <p>
+        It does not. Which product wins a buying guide is decided on testing and value
+        before commission rates are considered. We routinely recommend products that pay
+        us nothing, and we leave out products that pay well but do not deserve a spot.
+        If a pick changes, it is because the hardware, the price or the competition
+        changed.
+      </p>
+
+      <h2>Prices and availability</h2>
+      <p>
+        Prices shown are indicative and were accurate when the article was written or
+        last updated. Retail pricing moves constantly — always confirm the current price
+        on the retailer's page before you buy.
+      </p>
+
+      <h2>Advertising</h2>
+      <p>
+        We also run display advertising. Advertisers have no input into editorial
+        content, and ad slots are kept out of the reading flow wherever we can manage it.
+      </p>
+
+      <h2>Questions</h2>
+      <p>
+        If anything here is unclear, or you think a link is not properly disclosed,
+        get in touch and we will correct it.
+      </p>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .page {
+    max-width: 820px;
+    padding-block: 40px 20px;
+  }
+  .page h1 {
+    font-size: clamp(2.2rem, 5vw, 3.2rem);
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 14px;
+  }
+</style>

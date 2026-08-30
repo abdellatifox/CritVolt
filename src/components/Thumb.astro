@@ -1,0 +1,105 @@
+---
+/**
+ * Cover image with a guaranteed fallback.
+ *
+ * If `src` is set it renders a real <img> with width/height so the browser
+ * reserves the box (no layout shift). If not, it paints a deterministic
+ * gradient keyed off the title, so an article without art still looks intentional
+ * instead of leaving a grey hole.
+ */
+interface Props {
+  src?: string;
+  alt?: string;
+  /** Text the fallback derives its colour and monogram from. */
+  seed: string;
+  /** Short label drawn on the fallback (usually the game name). */
+  label?: string;
+  /** True for above-the-fold covers only - everything else stays lazy. */
+  eager?: boolean;
+  width?: number;
+  height?: number;
+}
+
+const { src, alt = '', seed, label, eager = false, width = 800, height = 450 } = Astro.props;
+
+/** Stable string hash so the same article always gets the same cover. */
+function hash(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return h;
+}
+
+const h = hash(seed);
+const hueA = h % 360;
+const hueB = (hueA + 40 + (h % 60)) % 360;
+const angle = 100 + (h % 80);
+
+const text = (label ?? seed).trim();
+
+// Skip filler words so "The Best Graphics Cards" reads GC, not TB — otherwise
+// every buying guide ends up with an identical monogram.
+const STOP = new Set(['the', 'a', 'an', 'of', 'for', 'and', 'best', 'to', 'in', 'we', 'our']);
+const words = text.split(/[\s:—-]+/).filter(Boolean);
+const meaningful = words.filter((w) => !STOP.has(w.toLowerCase()));
+const monogram = (meaningful.length ? meaningful : words)
+  .slice(0, 2)
+  .map((w) => w[0])
+  .join('')
+  .toUpperCase();
+---
+
+{
+  src ? (
+    <img
+      src={src}
+      alt={alt}
+      width={width}
+      height={height}
+      loading={eager ? 'eager' : 'lazy'}
+      decoding="async"
+      class="thumb-inner"
+    />
+  ) : (
+    <div class="thumb" role="img" aria-label={alt || text}>
+      <div
+        class="thumb-inner"
+        style={`--a: hsl(${hueA} 70% 22%); --b: hsl(${hueB} 80% 12%); --angle: ${angle}deg;`}
+      >
+        <span class="thumb-mono">{monogram}</span>
+      </div>
+    </div>
+  )
+}
+
+<style>
+  .thumb {
+    width: 100%;
+    height: 100%;
+    background: var(--surface-2);
+  }
+  .thumb-inner {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    background:
+      repeating-linear-gradient(
+        var(--angle),
+        rgba(255, 255, 255, 0.035) 0 2px,
+        transparent 2px 14px
+      ),
+      linear-gradient(var(--angle), var(--a), var(--b));
+    transition: transform 0.35s var(--ease);
+  }
+  .thumb-mono {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 7vw, 4.5rem);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: rgba(255, 255, 255, 0.09);
+    user-select: none;
+  }
+  img.thumb-inner {
+    object-fit: cover;
+  }
+</style>

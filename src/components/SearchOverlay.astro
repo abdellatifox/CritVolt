@@ -1,0 +1,282 @@
+---
+/**
+ * Site search.
+ *
+ * The index is a static JSON file fetched on first open, so search costs the
+ * site nothing until a reader actually uses it — no server, no third party, and
+ * no weight on the initial page load.
+ */
+---
+
+<div class="search" id="search" hidden>
+  <div class="search-backdrop" data-close></div>
+
+  <div class="search-panel" role="dialog" aria-modal="true" aria-label="Search">
+    <div class="search-field">
+      <svg viewBox="0 0 24 24" aria-hidden="true" class="search-icon">
+        <circle cx="11" cy="11" r="7"></circle>
+        <path d="M20 20l-3.5-3.5"></path>
+      </svg>
+      <input
+        type="search"
+        id="search-input"
+        placeholder="Search guides, news, reviews and hardware…"
+        autocomplete="off"
+        spellcheck="false"
+        aria-controls="search-results"
+      />
+      <button type="button" class="search-close" data-close aria-label="Close search">Esc</button>
+    </div>
+
+    <div class="search-results" id="search-results" role="listbox" aria-live="polite">
+      <p class="search-hint">Type at least two characters.</p>
+    </div>
+  </div>
+</div>
+
+<style>
+  .search {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: grid;
+    align-items: start;
+    justify-items: center;
+    padding: clamp(60px, 12vh, 140px) 20px 20px;
+  }
+  .search[hidden] {
+    display: none;
+  }
+
+  .search-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(4, 4, 6, 0.82);
+    backdrop-filter: blur(4px);
+  }
+
+  .search-panel {
+    position: relative;
+    width: min(680px, 100%);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+    overflow: hidden;
+  }
+
+  .search-field {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .search-icon {
+    width: 20px;
+    height: 20px;
+    flex: none;
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+  .search-field input {
+    flex: 1;
+    min-width: 0;
+    background: none;
+    border: 0;
+    outline: none;
+    font-size: 1.05rem;
+    color: var(--text);
+  }
+  .search-field input::placeholder {
+    color: var(--muted);
+  }
+  .search-close {
+    flex: none;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--muted);
+    font-family: var(--font-display);
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 8px;
+    cursor: pointer;
+  }
+  .search-close:hover {
+    color: var(--text);
+    border-color: var(--accent);
+  }
+
+  .search-results {
+    max-height: min(56vh, 460px);
+    overflow-y: auto;
+  }
+  .search-hint,
+  .search-empty {
+    padding: 22px 18px;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+
+  .search-results :global(a) {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .search-results :global(a:hover),
+  .search-results :global(a.is-active) {
+    background: var(--surface-2);
+  }
+  .search-results :global(.r-cat) {
+    flex: none;
+    min-width: 62px;
+    font-family: var(--font-display);
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--c, var(--accent));
+  }
+  .search-results :global(.r-title) {
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--text);
+  }
+  .search-results :global(a:hover .r-title) {
+    color: var(--c, var(--accent));
+  }
+</style>
+
+<script>
+  type Item = { t: string; d: string; u: string; c: string; g: string; k: string };
+
+  const root = document.getElementById('search') as HTMLElement | null;
+  const input = document.getElementById('search-input') as HTMLInputElement | null;
+  const results = document.getElementById('search-results') as HTMLElement | null;
+  if (root && input && results) {
+    let index: Item[] | null = null;
+    let loading = false;
+
+    async function loadIndex() {
+      if (index || loading) return;
+      loading = true;
+      try {
+        const res = await fetch('/search-index.json');
+        index = await res.json();
+      } catch {
+        index = [];
+      } finally {
+        loading = false;
+      }
+    }
+
+    function open() {
+      root!.hidden = false;
+      document.body.style.overflow = 'hidden';
+      input!.focus();
+      loadIndex();
+    }
+
+    function close() {
+      root!.hidden = true;
+      document.body.style.overflow = '';
+      input!.value = '';
+      results!.innerHTML = '<p class="search-hint">Type at least two characters.</p>';
+    }
+
+    // Title hits outrank game/tag hits, which outrank description hits. Crude,
+    // and completely adequate for a site of this size.
+    function score(item: Item, q: string) {
+      const t = item.t.toLowerCase();
+      if (t.includes(q)) return t.startsWith(q) ? 100 : 60;
+      if ((item.g + ' ' + item.k).toLowerCase().includes(q)) return 30;
+      if (item.d.toLowerCase().includes(q)) return 10;
+      return 0;
+    }
+
+    function esc(s: string) {
+      return s.replace(/[&<>"]/g, (c) =>
+        ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c] as string,
+      );
+    }
+
+    function render(q: string) {
+      if (q.length < 2) {
+        results!.innerHTML = '<p class="search-hint">Type at least two characters.</p>';
+        return;
+      }
+      if (!index) {
+        results!.innerHTML = '<p class="search-hint">Loading…</p>';
+        return;
+      }
+
+      const hits = index
+        .map((item) => ({ item, s: score(item, q) }))
+        .filter((h) => h.s > 0)
+        .sort((a, b) => b.s - a.s)
+        .slice(0, 8);
+
+      if (hits.length === 0) {
+        results!.innerHTML = `<p class="search-empty">No results for “${esc(q)}”.</p>`;
+        return;
+      }
+
+      results!.innerHTML = hits
+        .map(
+          ({ item }) =>
+            `<a href="${item.u}" data-cat="${item.c}" role="option">
+               <span class="r-cat">${item.c}</span>
+               <span class="r-title">${esc(item.t)}</span>
+             </a>`,
+        )
+        .join('');
+    }
+
+    input.addEventListener('input', () => render(input.value.trim().toLowerCase()));
+
+    // Open from the header button, or with / and Ctrl/Cmd+K like every other
+    // tool readers already use.
+    document.querySelectorAll('[data-search-open]').forEach((btn) =>
+      btn.addEventListener('click', open),
+    );
+    root.querySelectorAll('[data-close]').forEach((el) => el.addEventListener('click', close));
+
+    document.addEventListener('keydown', (e) => {
+      const typing = /^(INPUT|TEXTAREA|SELECT)$/.test((e.target as HTMLElement)?.tagName ?? '');
+
+      if (e.key === 'Escape' && !root.hidden) close();
+      if ((e.key === '/' || (e.key.toLowerCase() === 'k' && (e.ctrlKey || e.metaKey))) && !typing) {
+        e.preventDefault();
+        open();
+      }
+
+      // Arrow keys move through results without leaving the keyboard.
+      if (!root.hidden && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+        const links = [...results.querySelectorAll('a')] as HTMLAnchorElement[];
+        if (links.length === 0) return;
+        e.preventDefault();
+        const current = links.findIndex((l) => l.classList.contains('is-active'));
+        const next =
+          e.key === 'ArrowDown'
+            ? (current + 1) % links.length
+            : (current - 1 + links.length) % links.length;
+        links.forEach((l) => l.classList.remove('is-active'));
+        links[next].classList.add('is-active');
+        links[next].scrollIntoView({ block: 'nearest' });
+      }
+
+      if (!root.hidden && e.key === 'Enter') {
+        const active = results.querySelector('a.is-active') as HTMLAnchorElement | null;
+        if (active) active.click();
+      }
+    });
+  }
+</script>

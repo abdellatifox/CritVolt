@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# Thin paginated archives add crawl load without adding value.
+Disallow: /*/page/
+
+Sitemap: https://critvolt.com/sitemap-index.xml

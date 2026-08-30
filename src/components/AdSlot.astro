@@ -1,0 +1,33 @@
+---
+/**
+ * A reserved advertising box.
+ *
+ * The whole point is that the space is claimed in CSS *before* any ad script
+ * runs, so injecting AdSense later cannot push the article down and wreck CLS.
+ * Every placement on the site goes through this component, which means you can
+ * swap ad networks, or kill ads on a page type, from one file.
+ *
+ * To go live: drop your AdSense <ins> block inside the slot below, keeping the
+ * min-height that matches the format.
+ */
+interface Props {
+  /** Stable identifier - use it as the AdSense data-ad-slot / GAM unit name. */
+  id: string;
+  format?: 'leaderboard' | 'rect' | 'inline' | 'billboard' | 'halfpage' | 'inarticle';
+  class?: string;
+}
+
+const { id, format = 'rect', class: className = '' } = Astro.props;
+---
+
+<aside
+  class={`ad ad--${format} ${className}`}
+  data-ad-slot={id}
+  aria-hidden="true"
+>
+  <!--
+    AdSense goes here, e.g.:
+    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-XXXX"
+         data-ad-slot="1234567890" data-ad-format="auto" data-full-width-responsive="true"></ins>
+  -->
+</aside>

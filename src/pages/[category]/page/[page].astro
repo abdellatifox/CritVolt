@@ -1,0 +1,109 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import ArticleCard from '../../../components/ArticleCard.astro';
+import AdSlot from '../../../components/AdSlot.astro';
+import { CATEGORIES, CATEGORY_MAP, PAGE_SIZE, type CategoryId } from '../../../consts';
+import { getSection, type Post } from '../../../lib/posts';
+
+/**
+ * Archive pages 2..n. Page 1 lives at /[category]/ so the canonical section URL
+ * stays clean; only the overflow pages get /page/N/ and they are noindexed
+ * (thin, duplicate-ish listings are a classic crawl-budget sink).
+ */
+export async function getStaticPaths() {
+  const paths = [];
+
+  for (const c of CATEGORIES) {
+    const posts = await getSection(c.id);
+    const total = Math.ceil(posts.length / PAGE_SIZE);
+
+    for (let page = 2; page <= total; page++) {
+      paths.push({
+        params: { category: c.id, page: String(page) },
+        props: {
+          posts: posts.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+          page,
+          total,
+        },
+      });
+    }
+  }
+
+  return paths;
+}
+
+export interface Props {
+  posts: Post[];
+  page: number;
+  total: number;
+}
+
+const { category } = Astro.params as { category: CategoryId };
+const { posts, page, total } = Astro.props;
+const cat = CATEGORY_MAP[category];
+
+const prev = page === 2 ? cat.href : `${cat.href}page/${page - 1}/`;
+const next = page < total ? `${cat.href}page/${page + 1}/` : null;
+---
+
+<BaseLayout
+  title={`${cat.label} — Page ${page}`}
+  description={cat.intro}
+  noindex={true}
+>
+  <div class="wrap" data-cat={category}>
+    <header class="archive-head">
+      <p class="eyebrow">Section &middot; Page {page} of {total}</p>
+      <h1>{cat.label}</h1>
+    </header>  </div>
+
+  <div class="wrap shell" data-cat={category}>
+    <div>
+      <div class="grid grid--3 archive-grid">
+        {posts.map((p) => <ArticleCard post={p} />)}
+      </div>
+
+      <nav class="pager" aria-label="Pagination">
+        <a class="btn btn--ghost" href={prev}>&lsaquo; Previous</a>
+        {next && <a class="btn btn--ghost" href={next}>Next &rsaquo;</a>}
+      </nav>
+    </div>
+
+    <aside class="rail" aria-label="Sidebar">
+      <AdSlot id={`${category}-rail-rect`} format="rect" />
+    </aside>
+  </div>
+</BaseLayout>
+
+<style>
+  .archive-head {
+    padding-block: 34px 22px;
+    border-bottom: 1px solid var(--border-soft);
+    margin-bottom: 22px;
+  }
+  .archive-head h1 {
+    font-size: clamp(2.2rem, 5vw, 3.4rem);
+    text-transform: uppercase;
+    line-height: 0.95;
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .archive-head h1::before {
+    content: "";
+    width: 8px;
+    height: 0.86em;
+    background: var(--c);
+    border-radius: 1px;
+  }
+  .archive-grid {
+    margin-top: 26px;
+  }
+  .pager {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 36px;
+  }
+</style>
