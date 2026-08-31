@@ -517,10 +517,10 @@ h1, h2, h3, h4 {
 /* Filled call to action. Bare .btn is deliberately transparent, so anything
    that needs to look like a button has to take a variant - without one it
    renders as plain bold text. */
-.btn--primary,
-.btn--buy { background: var(--accent); color: var(--accent-ink); }
-.btn--primary:hover,
-.btn--buy:hover { background: var(--accent-soft); box-shadow: 0 0 26px var(--accent-glow); }
+.btn--primary { background: var(--accent); color: var(--accent-ink); }
+.btn--primary:hover { background: var(--accent-soft); box-shadow: 0 0 26px var(--accent-glow); }
+.btn--buy { background: #7ec800; color: #0d0d12; }
+.btn--buy:hover { background: #95e000; box-shadow: 0 0 22px rgba(126, 200, 0, 0.45); }
 .btn--ghost {
   background: transparent;
   border-color: var(--border);
