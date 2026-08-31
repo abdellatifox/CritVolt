@@ -1,5 +1,10 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import type { CategoryId } from '../consts';
+/* Written by scripts/fetch-posters.mjs. A manifest rather than an existsSync
+   check so nothing here depends on the filesystem - this file is imported by
+   every page and must stay portable across adapters. */
+import posters from '../data/posters.json';
+import imageWidths from '../data/image-widths.json';
 
 /** A post from any section, normalised so components never care which one. */
 export type Post = CollectionEntry<'guides' | 'news' | 'reviews' | 'setup'> & {
@@ -96,7 +101,10 @@ export type GameHub = {
   name: string;
   slug: string;
   count: number;
+  /** 16:9 article cover, borrowed from the game's newest post. */
   cover?: string;
+  /** 9:16 portrait poster, if one has been fetched for this game. */
+  poster?: string;
   latest: Date;
   /** Which sections cover it, in publication order - "Guides, Reviews". */
   sections: string[];
@@ -125,7 +133,15 @@ export function gamesCovered(posts: Post[]): GameHub[] {
 
     const hub =
       map.get(name) ??
-      ({ name, slug: gameSlug(name), count: 0, cover: undefined, latest: new Date(0), sections: [] } as GameHub);
+      ({
+        name,
+        slug: gameSlug(name),
+        count: 0,
+        cover: undefined,
+        poster: (posters as Record<string, string>)[gameSlug(name)],
+        latest: new Date(0),
+        sections: [],
+      } as GameHub);
 
     hub.count++;
     if (!hub.cover && p.data.cover) hub.cover = p.data.cover;
@@ -147,4 +163,19 @@ export function postsForGame(posts: Post[], slug: string): Post[] {
     const g = (p.data as any).game as string | undefined;
     return g ? gameSlug(g) === slug : false;
   });
+}
+
+/**
+ * Builds the srcset for a public-folder image from the variants
+ * scripts/responsive-images.mjs generated.
+ *
+ * Exported so a page can hand the exact same srcset to BaseLayout's LCP
+ * preload as Thumb puts on the <img>. If the two ever disagree the browser
+ * downloads the image twice, which is worse than not preloading at all.
+ */
+export function srcsetFor(src: string | undefined): string | undefined {
+  if (!src) return undefined;
+  const ws = (imageWidths as Record<string, number[]>)[src];
+  if (!ws?.length) return undefined;
+  return ws.map((w) => `${src.replace(/\.webp$/, '')}@${w}w.webp ${w}w`).join(', ');
 }

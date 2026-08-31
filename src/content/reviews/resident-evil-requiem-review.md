@@ -4,7 +4,7 @@ description: "Requiem is the most confident Resident Evil since RE2 Remake, and 
 pubDate: 2026-08-27
 author: "Nadia Roux"
 game: "Resident Evil Requiem"
-score: 9
+score: 8.8
 verdict: "Capcom's tightest survival horror in years. The camera options are a nice headline; the pacing and the encounter design are the actual achievement."
 platforms: ["PC", "PS5", "Xbox Series X|S"]
 developer: "Capcom"

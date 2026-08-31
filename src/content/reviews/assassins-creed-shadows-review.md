@@ -4,7 +4,7 @@ description: "Naoe and Yasuke are two genuinely different games sharing one map,
 pubDate: 2026-08-26
 author: "Priya Nair"
 game: "Assassin's Creed Shadows"
-score: 8
+score: 8.2
 verdict: "The stealth half is the best Assassin's Creed has played in a decade. The combat half is a competent action game bolted to it. Both are worth your time, but not for the same reasons."
 platforms: ["PC", "PS5", "Xbox Series X|S"]
 developer: "Ubisoft Quebec"

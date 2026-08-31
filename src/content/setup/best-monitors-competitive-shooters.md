@@ -39,7 +39,7 @@ products:
       - "1080p looks soft if you also use it for anything else"
 cover: "/img/covers/best-monitors-competitive-shooters.webp"
 coverAlt: "Counter-Strike 2 key art"
-coverCredit: "Artwork: Counter-Strike 2 — via Steam"
+coverCredit: "Screenshot: Counter-Strike 2 — via Steam"
 ---
 
 Refresh rate is the number everyone shops on and the least useful one past a point. What actually separates these panels is motion clarity and whether your machine can feed them.

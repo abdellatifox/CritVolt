@@ -7,6 +7,8 @@
  * gradient keyed off the title, so an article without art still looks intentional
  * instead of leaving a grey hole.
  */
+import widths from '../data/image-widths.json';
+
 interface Props {
   src?: string;
   alt?: string;
@@ -18,9 +20,36 @@ interface Props {
   eager?: boolean;
   width?: number;
   height?: number;
+  /**
+   * The `sizes` attribute: how wide this image renders at each breakpoint.
+   * Without it the browser assumes 100vw and downloads the largest variant on
+   * every device, which defeats the whole point of the srcset.
+   */
+  sizes?: string;
 }
 
-const { src, alt = '', seed, label, eager = false, width = 800, height = 450 } = Astro.props;
+const {
+  src,
+  alt = '',
+  seed,
+  label,
+  eager = false,
+  width = 800,
+  height = 450,
+  sizes,
+} = Astro.props;
+
+/**
+ * Build a srcset from the variants scripts/responsive-images.mjs generated.
+ * Falls back to a bare src when an image has no variants, so a newly added
+ * file still renders before the script has been run.
+ */
+const available: number[] = (widths as Record<string, number[]>)[src ?? ''] ?? [];
+const srcset = available.length
+  ? available
+      .map((w: number) => `${src!.replace(/\.webp$/, '')}@${w}w.webp ${w}w`)
+      .join(', ')
+  : undefined;
 
 /** Stable string hash so the same article always gets the same cover. */
 function hash(s: string): number {
@@ -48,14 +77,19 @@ const monogram = (meaningful.length ? meaningful : words)
   .toUpperCase();
 ---
 
+{/* An eager image is the page's LCP candidate, so it also asks for high fetch
+    priority - otherwise the browser queues it behind the stylesheet. */}
 {
   src ? (
     <img
       src={src}
+      srcset={srcset}
+      sizes={srcset ? (sizes ?? '100vw') : undefined}
       alt={alt}
       width={width}
       height={height}
       loading={eager ? 'eager' : 'lazy'}
+      fetchpriority={eager ? 'high' : undefined}
       decoding="async"
       class="thumb-inner"
     />

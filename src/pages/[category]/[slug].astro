@@ -20,6 +20,7 @@ import {
   adjacent,
   formatDate,
   readingMinutes,
+  srcsetFor,
   type Post,
 } from '../../lib/posts';
 
@@ -115,6 +116,15 @@ const jsonLd = [articleSchema, breadcrumbSchema, ...(reviewSchema ? [reviewSchem
   image={d.cover}
   ogType="article"
   jsonLd={jsonLd}
+  preloadImage={
+    d.cover
+      ? {
+          src: d.cover,
+          srcset: srcsetFor(d.cover),
+          sizes: '(max-width: 1000px) 100vw, 900px',
+        }
+      : undefined
+  }
 >
   <article data-cat={category}>
     <ReadingProgress />
@@ -175,6 +185,7 @@ const jsonLd = [articleSchema, breadcrumbSchema, ...(reviewSchema ? [reviewSchem
             eager={true}
             width={1200}
             height={675}
+            sizes="(max-width: 1000px) 100vw, 900px"
           />
         </div>
         {d.coverCredit && <figcaption>{d.coverCredit}</figcaption>}

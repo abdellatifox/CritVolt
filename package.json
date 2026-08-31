@@ -13,7 +13,12 @@
     "covers": "node scripts/fetch-covers.mjs",
     "images": "node scripts/optimize-images.mjs",
     "images:dry": "node scripts/optimize-images.mjs --dry",
+    "images:responsive": "node scripts/responsive-images.mjs",
     "covers:dry": "node scripts/fetch-covers.mjs --dry",
+    "posters": "node scripts/fetch-posters.mjs",
+    "posters:dry": "node scripts/fetch-posters.mjs --dry",
+    "posters:find": "node scripts/poster-candidates.mjs",
+    "fonts": "node scripts/fetch-fonts.mjs",
     "drafts": "node ../content-drafts/publish.mjs",
     "drafts:dry": "node ../content-drafts/publish.mjs --dry"
   },

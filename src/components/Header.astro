@@ -26,14 +26,15 @@ const active = CATEGORIES.find((c) => path.startsWith(c.href))?.id;
     </nav>
 
     <div class="actions">
-      <button class="icon-btn" type="button" data-search-open aria-label="Search">
+      <button class="search-btn" type="button" data-search-open aria-label="Search">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <circle cx="11" cy="11" r="7"></circle>
           <path d="M20 20l-3.5-3.5"></path>
         </svg>
+        <span>Search</span>
       </button>
 
-      <a class="btn btn--signup" href="/signup/">Sign up</a>
+      <a class="signup-btn" href="/signup/">Sign up</a>
 
       <button
         class="burger"
@@ -120,43 +121,61 @@ const active = CATEGORIES.find((c) => path.startsWith(c.href))?.id;
     flex: none;
   }
 
-  .icon-btn {
-    display: grid;
-    place-items: center;
-    width: 36px;
-    height: 36px;
-    background: none;
+  /* ---- Search button (icon + label, like the reference) ---- */
+  .search-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    height: 38px;
+    min-width: 180px;
+    padding: 0 16px;
+    background: var(--bg-elev);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    color: var(--text-2);
+    color: var(--muted);
+    font-family: var(--font-display);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
     cursor: pointer;
+    white-space: nowrap;
     transition: color 0.15s var(--ease), border-color 0.15s var(--ease);
   }
-  .icon-btn svg {
-    width: 18px;
-    height: 18px;
+  .search-btn svg {
+    width: 16px;
+    height: 16px;
     fill: none;
     stroke: currentColor;
     stroke-width: 2;
     stroke-linecap: round;
+    flex: none;
   }
-  .icon-btn:hover {
-    color: var(--accent);
-    border-color: var(--accent);
+  .search-btn:hover {
+    color: var(--text);
+    border-color: var(--border-soft);
   }
 
-  /* The one filled button on the page - the accent belongs to the CTA. */
-  .btn--signup {
-    background: var(--accent);
-    color: var(--accent-ink);
-    /* Fixed height so it lines up exactly with the search button beside it. */
+  /* ---- Sign-up — solid filled, matches the "Subscribe" style ---- */
+  .signup-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     height: 36px;
-    padding: 0 18px;
+    padding: 0 20px;
+    background: var(--accent);
+    color: #fff;
+    font-family: var(--font-display);
     font-size: 0.88rem;
-    letter-spacing: 0.1em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
     white-space: nowrap;
+    border-radius: var(--radius);
+    border: none;
+    transition: background 0.15s var(--ease), box-shadow 0.2s var(--ease);
   }
-  .btn--signup:hover {
+  .signup-btn:hover {
     background: var(--accent-soft);
     box-shadow: 0 0 22px var(--accent-glow);
   }
@@ -218,15 +237,14 @@ const active = CATEGORIES.find((c) => path.startsWith(c.href))?.id;
     }
   }
 
-  /* Narrow phones: keep the CTA, drop its padding rather than the button. */
+  /* Narrow phones */
+  @media (max-width: 640px) {
+    .search-btn span { display: none; }
+    .search-btn { padding: 0 10px; }
+  }
   @media (max-width: 420px) {
-    .actions {
-      gap: 6px;
-    }
-    .btn--signup {
-      padding: 8px 12px;
-      font-size: 0.82rem;
-    }
+    .actions { gap: 6px; }
+    .signup-btn { padding: 0 12px; font-size: 0.8rem; }
   }
 </style>
 

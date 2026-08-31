@@ -10,3 +10,5 @@ dist/
 .vercel/
 .netlify/
 .wrangler/
+# Scratch folder for poster review sheets.
+.poster-candidates/

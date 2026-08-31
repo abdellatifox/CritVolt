@@ -7,7 +7,7 @@
  * image and a screen-reader copy sits next to it, which is what search and
  * assistive tech read.
  *
- * WebP first with a PNG fallback; both are 639x228 - the artwork trimmed to
+ * WebP first with a PNG fallback; both are 480x171 - the artwork trimmed to
  * its own edges and rendered at three times the largest place it is shown, so
  * it stays sharp on every display. The source file carries ~14% dead space at
  * the bottom, which would otherwise shrink the mark inside its box.
@@ -30,8 +30,8 @@ const Tag = href ? 'a' : 'span';
     <img
       src="/logo.png"
       alt=""
-      width="639"
-      height="228"
+      width="480"
+      height="171"
       loading="eager"
       decoding="async"
     />

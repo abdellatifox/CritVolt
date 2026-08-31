@@ -6,6 +6,9 @@
  *   npm run covers         fetch and write
  *   npm run covers -- --force    re-fetch even where a cover already exists
  *
+ * Output format: covers are always written 1600x900 (16:9), whatever shape
+ * the source was. Screenshots keep their own dimensions.
+ *
  * Sources, in order of preference:
  *
  *   1. RAWG   — needs a free key in .env (RAWG_API_KEY). Best artwork, widest
@@ -119,6 +122,18 @@ async function fromRawg(game) {
  */
 const STEAM_ASSETS = ['library_hero.jpg', 'capsule_616x353.jpg', 'header.jpg'];
 
+/**
+ * Strip trademark marks and punctuation so "HELLDIVERS(tm) 2" compares equal to
+ * "Helldivers 2".
+ */
+function normalise(s) {
+  return s
+    .toLowerCase()
+    .replace(/[™®©]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
 async function fromSteam(game) {
   // Steam's community app search is public and needs no key.
   const res = await fetch(
@@ -130,6 +145,13 @@ async function fromSteam(game) {
   const list = await res.json();
   const hit = list?.[0];
   if (!hit?.appid) return null;
+
+  // Steam always returns its closest guess, so a title it does not carry comes
+  // back as a neighbour: searching "Grand Theft Auto VI" answers "Grand Theft
+  // Auto V Enhanced". Taking result [0] on trust once shipped GTA 5 key art on
+  // a GTA 6 article, credited to the wrong game. Require the requested title to
+  // actually appear in the match.
+  if (!normalise(hit.name).includes(normalise(game))) return null;
 
   for (const asset of STEAM_ASSETS) {
     const url = `https://cdn.cloudflare.steamstatic.com/steam/apps/${hit.appid}/${asset}`;
@@ -207,14 +229,32 @@ function gameSlug(game) {
 const MAX_WIDTH = 1600;
 const QUALITY = 80;
 
-async function download(url, path) {
+/**
+ * House cover format: 1600x900, 16:9.
+ *
+ * Every place a cover appears is 16:9 - the article hero, the card grids, the
+ * game tiles - so the ratio is enforced here rather than left to whichever
+ * Steam asset happened to answer. Without the crop, library_hero (1920x620)
+ * lands on disk at 3.09:1 and the layout has to gouge it to fit, which is how
+ * a card ends up showing a blank corner of the key art.
+ */
+const COVER_W = 1600;
+const COVER_H = 900;
+
+async function download(url, path, { crop = false } = {}) {
   const res = await fetch(url);
   if (!res.ok) return false;
 
-  // Store art already resized and in WebP - roughly a quarter of the bytes,
-  // and it means a fresh fetch never regresses page weight.
-  const webp = await sharp(Buffer.from(await res.arrayBuffer()))
-    .resize({ width: MAX_WIDTH, withoutEnlargement: true })
+  const img = sharp(Buffer.from(await res.arrayBuffer()));
+
+  // Covers are cropped to the house ratio; in-article screenshots keep their
+  // own shape, because they are illustrations, not slots in a grid.
+  // `attention` picks the busiest region, which on wide key art is the
+  // subject rather than the empty sky a centre crop would land on.
+  const webp = await (crop
+    ? img.resize(COVER_W, COVER_H, { fit: 'cover', position: sharp.strategy.attention })
+    : img.resize({ width: MAX_WIDTH, withoutEnlargement: true })
+  )
     .webp({ quality: QUALITY })
     .toBuffer();
 
@@ -372,7 +412,7 @@ for (const cat of CATEGORIES) {
     const outPath = join(COVERS, outName);
 
     if (!DRY) {
-      if (!(await download(hit.url, outPath))) {
+      if (!(await download(hit.url, outPath, { crop: true }))) {
         console.log(`  ${c.red('fail')}  ${slug} — cover download failed`);
         missed++;
         continue;

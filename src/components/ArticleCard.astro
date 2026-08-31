@@ -23,6 +23,8 @@ const game = (post.data as any).game as string | undefined;
 ---
 
 <article class={`card ${variant === 'row' ? 'card--row' : ''}`} data-cat={post.category}>
+  {/* A row card's thumbnail is a fixed 116px; a grid card is at most a third
+      of the content column. Neither ever needs the 1600px variant. */}
   <div class="card-media">
     <Thumb
       src={post.data.cover}
@@ -30,6 +32,11 @@ const game = (post.data as any).game as string | undefined;
       seed={post.id}
       label={game ?? post.data.title}
       eager={eager}
+      sizes={
+        variant === 'row'
+          ? '116px'
+          : '(max-width: 540px) 100vw, (max-width: 1000px) 45vw, 420px'
+      }
     />
     {variant === 'grid' && <span class="tag tag--solid card-tag">{cat.label}</span>}
     {

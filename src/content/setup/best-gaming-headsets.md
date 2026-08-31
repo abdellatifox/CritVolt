@@ -39,7 +39,7 @@ products:
       - "Detachable microphone is merely acceptable"
 cover: "/img/covers/best-gaming-headsets.webp"
 coverAlt: "A Counter-Strike 2 competitive scene"
-coverCredit: "Screenshot: Counter-Strike 2 — via Steam"
+coverCredit: "Artwork: Counter-Strike 2 — via Steam"
 ---
 
 Most gaming headsets are judged on how they sound in a demo and how they look in a photograph. Neither predicts whether you will still want to wear one after three hours.

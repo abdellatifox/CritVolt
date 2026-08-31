@@ -4,8 +4,8 @@ description: "Japan gives Horizon the road network it has needed for two entries
 pubDate: 2026-08-27
 author: "Marc Ellery"
 game: "Forza Horizon 6"
-score: 8.5
-verdict: "The best-driving Horizon in years, on a map that finally rewards precision over speed. The progression scaffolding around it is showing its age."
+score: 9.2
+verdict: "The best-driving Horizon yet, on a map that finally rewards precision over speed. The festival scaffolding around it is the only part still playing safe."
 platforms: ["PC", "Xbox Series X|S"]
 developer: "Playground Games"
 publisher: "Xbox Game Studios"

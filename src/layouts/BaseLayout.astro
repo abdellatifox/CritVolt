@@ -24,6 +24,14 @@ interface Props {
   jsonLd?: Record<string, unknown>[];
   /** Set false to drop the banner band (sign-up, 404). */
   ads?: boolean;
+  /**
+   * The LCP image, preloaded so the browser can start it while it is still
+   * parsing the head. Without this the request is only discovered when the
+   * parser reaches the <img>, which is what Lighthouse reports as "LCP request
+   * discovery". Pass the same src/srcset/sizes the image itself uses, or the
+   * browser fetches a second copy.
+   */
+  preloadImage?: { src: string; srcset?: string; sizes?: string };
 }
 
 const {
@@ -34,6 +42,7 @@ const {
   noindex = false,
   jsonLd = [],
   ads = true,
+  preloadImage,
 } = Astro.props;
 
 /** Ad unit names carry the route, so reporting is readable per section. */
@@ -72,12 +81,38 @@ const fullTitle = title === SITE.name ? `${SITE.name} — ${SITE.tagline}` : `${
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="alternate" type="application/rss+xml" title={SITE.name} href="/rss.xml" />
 
-    <!-- Fonts: preconnect first so the display face is not render-blocking for long. -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!--
+      Fonts are self-hosted (scripts/fetch-fonts.mjs) and imported from the CSS
+      bundle, so there is no third-party stylesheet blocking first render.
+      Only the two faces used above the fold are preloaded - preloading all
+      four would compete with the LCP image for bandwidth.
+    -->
+    {
+      preloadImage && (
+        <link
+          rel="preload"
+          as="image"
+          href={preloadImage.src}
+          imagesrcset={preloadImage.srcset}
+          imagesizes={preloadImage.sizes}
+          fetchpriority="high"
+        />
+      )
+    }
+
     <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&display=swap"
+      rel="preload"
+      href="/fonts/inter-400.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/barlow-condensed-700.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
     />
 
     {
