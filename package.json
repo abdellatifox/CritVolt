@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
+    "prebuild": "node scripts/responsive-images.mjs",
     "build": "astro build",
+    "postbuild": "node scripts/perf-check.mjs",
+    "perf": "node scripts/perf-check.mjs",
     "check": "astro check",
     "preview": "astro preview",
     "astro": "astro",

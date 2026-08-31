@@ -2,6 +2,7 @@
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
+import rehypeResponsiveImg from './scripts/rehype-responsive-img.mjs';
 
 // https://astro.build/config
 export default defineConfig({
@@ -13,6 +14,10 @@ export default defineConfig({
 
   markdown: {
     shikiConfig: { theme: 'github-dark', wrap: true },
+    // Screenshots embedded in article HTML never pass through Thumb, so they
+    // get their srcset here instead of relying on whoever writes the next
+    // article remembering to add one.
+    rehypePlugins: [rehypeResponsiveImg],
   },
 
   server: {
