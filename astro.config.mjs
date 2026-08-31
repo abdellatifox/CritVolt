@@ -40,7 +40,6 @@ export default defineConfig({
   trailingSlash: 'always',
 
   image: {
-    // Allow future remote product/press images (add hosts as you need them).
-    domains: [],
+    domains: ['pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev'],
   },
 });

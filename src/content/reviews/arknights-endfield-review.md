@@ -20,7 +20,7 @@ pros:
 cons:
   - "Progress gates that exist to sell you past them"
   - "The gacha layer sits on top of systems that did not need it"
-cover: "/img/covers/arknights-endfield-review.webp"
+cover: "https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/covers/arknights-endfield-review.webp"
 coverAlt: "An industrial facility in Arknights: Endfield"
 coverCredit: "Artwork: Arknights: Endfield — via SteamGridDB"
 

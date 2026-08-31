@@ -39,7 +39,7 @@ products:
       - "Quiet under load"
     cons:
       - "512GB fills fast — budget for a second drive"
-cover: "/img/covers/best-budget-gaming-pc-under-1000.webp"
+cover: "https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/covers/best-budget-gaming-pc-under-1000.webp"
 coverAlt: "HELLDIVERS™ 2 key art"
 coverCredit: "Artwork: HELLDIVERS™ 2 — via Steam"
 ---
@@ -47,7 +47,7 @@ coverCredit: "Artwork: HELLDIVERS™ 2 — via Steam"
 Prebuilt gaming PCs under $1,000 are where the industry hides its worst decisions: proprietary power supplies, memory in single-channel, and cases with one fan. These three avoid all of that.
 
 <figure>
-  <img src="/img/shots/helldivers-2-1.webp" alt="A battle scene at a budget-friendly settings preset" width="1920" height="1080" loading="lazy" />
+  <img src="https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/shots/helldivers-2-1.webp" alt="A battle scene at a budget-friendly settings preset" width="1920" height="1080" loading="lazy" />
   <figcaption>The realistic target at this budget: 1080p high, locked and stable. Screenshot: Helldivers 2 — via Steam</figcaption>
 </figure>
 
@@ -64,7 +64,7 @@ A machine only made this list if it uses standard ATX parts, ships with dual-cha
 **Case airflow.** One fan is not enough for any machine with a discrete graphics card.
 
 <figure>
-  <img src="/img/shots/helldivers-2-2.webp" alt="A large-scale firefight with heavy particle effects" width="1920" height="1080" loading="lazy" />
+  <img src="https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/shots/helldivers-2-2.webp" alt="A large-scale firefight with heavy particle effects" width="1920" height="1080" loading="lazy" />
   <figcaption>Particle-heavy moments are where a thermally choked prebuilt shows itself. Screenshot: Helldivers 2 — via Steam</figcaption>
 </figure>
 

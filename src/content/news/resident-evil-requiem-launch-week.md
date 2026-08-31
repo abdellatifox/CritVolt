@@ -4,7 +4,7 @@ description: "Requiem arrived with a camera toggle, a difficulty spread and one 
 pubDate: 2026-08-28
 author: "Priya Nair"
 game: "Resident Evil Requiem"
-cover: "/img/covers/resident-evil-requiem-launch-week.webp"
+cover: "https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/covers/resident-evil-requiem-launch-week.webp"
 coverAlt: "Resident Evil Requiem key art"
 coverCredit: "Screenshot: Resident Evil Requiem — via Steam"
 tags: ["Resident Evil Requiem", "Launch"]
@@ -23,7 +23,7 @@ time, removed the argument that dominated the run-up to launch. Players simply
 picked one.
 
 <figure>
-  <img src="/img/shots/resident-evil-requiem-5.webp" alt="A corridor in Resident Evil Requiem" width="1920" height="1080" loading="lazy" />
+  <img src="https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/shots/resident-evil-requiem-5.webp" alt="A corridor in Resident Evil Requiem" width="1920" height="1080" loading="lazy" />
   <figcaption>The toggle turned a pre-launch argument into a settings menu. Screenshot: Resident Evil Requiem — via Steam</figcaption>
 </figure>
 
@@ -34,7 +34,7 @@ Requiem asks you to make hard carrying decisions early, and opinion splits
 sharply on whether that is tension or friction.
 
 <figure>
-  <img src="/img/shots/resident-evil-requiem-8.webp" alt="A creature encounter in Resident Evil Requiem" width="1920" height="1080" loading="lazy" />
+  <img src="https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/shots/resident-evil-requiem-8.webp" alt="A creature encounter in Resident Evil Requiem" width="1920" height="1080" loading="lazy" />
   <figcaption>Encounter density is high early, and inventory space is not. Screenshot: Resident Evil Requiem — via Steam</figcaption>
 </figure>
 

@@ -55,7 +55,7 @@ products:
     cons:
       - "Ray tracing still trails the competition"
       - "Long board — check clearance first"
-cover: "/img/covers/best-graphics-cards-1440p.webp"
+cover: "https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/covers/best-graphics-cards-1440p.webp"
 coverAlt: "A Night City street scene in Cyberpunk 2077"
 coverCredit: "Screenshot: Cyberpunk 2077 — via Steam"
 ---
@@ -69,7 +69,7 @@ Every card was run in the same bench: a mid-range eight-core CPU, 32GB of memory
 Numbers quoted are averages across nine games, with the 1% low recorded separately. A card that averages well but stutters is not a card we recommend.
 
 <figure>
-  <img src="/img/shots/cyberpunk-2077-5.webp" alt="A night-time street scene used for GPU benchmarking" width="1920" height="1080" loading="lazy" />
+  <img src="https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/shots/cyberpunk-2077-5.webp" alt="A night-time street scene used for GPU benchmarking" width="1920" height="1080" loading="lazy" />
   <figcaption>Our reference scene: dense geometry, heavy lighting, upscaling off. Screenshot: Cyberpunk 2077 — via Steam</figcaption>
 </figure>
 
@@ -82,7 +82,7 @@ Numbers quoted are averages across nine games, with the 1% low recorded separate
 **Length.** More returns happen because of clearance than because of performance.
 
 <figure>
-  <img src="/img/shots/cyberpunk-2077-2.webp" alt="Ray-traced reflections in a night scene" width="1920" height="1080" loading="lazy" />
+  <img src="https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/shots/cyberpunk-2077-2.webp" alt="Ray-traced reflections in a night scene" width="1920" height="1080" loading="lazy" />
   <figcaption>Ray tracing is where the gap between these cards stops being academic. Screenshot: Cyberpunk 2077 — via Steam</figcaption>
 </figure>
 

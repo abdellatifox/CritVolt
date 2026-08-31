@@ -4,6 +4,8 @@
  * nav, category pages, colours, badges and the sitemap all read from this file.
  */
 
+export const CDN = 'https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev';
+
 export const SITE = {
   name: 'CritVolt',
   tagline: 'Guides, News, Reviews & Gaming Setups',

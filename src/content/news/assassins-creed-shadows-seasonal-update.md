@@ -4,7 +4,7 @@ description: "Ubisoft's post-launch work on Shadows keeps circling back to the s
 pubDate: 2026-08-25
 author: "Nadia Roux"
 game: "Assassin's Creed Shadows"
-cover: "/img/covers/assassins-creed-shadows-seasonal-update.webp"
+cover: "https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/covers/assassins-creed-shadows-seasonal-update.webp"
 coverAlt: "Assassin's Creed Shadows key art"
 coverCredit: "Screenshot: Assassin's Creed Shadows — via Steam"
 tags: ["Assassin's Creed Shadows", "Updates"]
@@ -24,7 +24,7 @@ unavailable in winter, which is unusual for a series that normally keeps its
 levels stable.
 
 <figure>
-  <img src="/img/shots/assassin-s-creed-shadows-3.webp" alt="A winter landscape in Assassin's Creed Shadows" width="1920" height="1080" loading="lazy" />
+  <img src="https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/shots/assassin-s-creed-shadows-3.webp" alt="A winter landscape in Assassin's Creed Shadows" width="1920" height="1080" loading="lazy" />
   <figcaption>Winter takes away cover that summer gave you. Screenshot: Assassin's Creed Shadows — via Steam</figcaption>
 </figure>
 
@@ -36,7 +36,7 @@ is. For a series that has been measured in square kilometres for a decade, that 
 a real shift.
 
 <figure>
-  <img src="/img/shots/assassin-s-creed-shadows-7.webp" alt="A castle at sunset in Assassin's Creed Shadows" width="1920" height="1080" loading="lazy" />
+  <img src="https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/shots/assassin-s-creed-shadows-7.webp" alt="A castle at sunset in Assassin's Creed Shadows" width="1920" height="1080" loading="lazy" />
   <figcaption>The same objective, approached in two seasons, is close to two levels. Screenshot: Assassin's Creed Shadows — via Steam</figcaption>
 </figure>
 
