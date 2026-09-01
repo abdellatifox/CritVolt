@@ -257,6 +257,45 @@ never been uploaded to, and deleted the local originals. Every image on the site
 and `public/img/` stays in the repo as both the upload source and a working
 fallback if `PUBLIC_CDN_URL` is ever unset.
 
+### Environment variables, and Cloudflare's two stores
+
+This bit costs hours if you get it wrong, so it is written down.
+
+Cloudflare Pages keeps **two separate variable stores**, and they are not
+interchangeable:
+
+| Store | Available during `npm run build`? | Available to `/api/` at request time? |
+| --- | --- | --- |
+| **Build** variables | yes | no |
+| **Runtime** variables and secrets | **no** | yes |
+
+CritVolt bakes the GTM tag into HTML at build time, so `GTM_ID` has to be a
+**build** variable. Set as a runtime variable it produces a completely green
+build that ships no tag at all — the page renders perfectly and simply stops
+measuring, with nothing anywhere to notice. That exact mistake happened.
+
+Two more traps in the same area:
+
+- A `[vars]` block in `wrangler.toml` **owns the project's whole variable
+  list**. Deleting the block does not leave the variables alone; it removes
+  them on the next deploy. That is why there is no `[vars]` block here — a
+  value someone edits in the dashboard must not be claimed by the repo.
+- A **direct upload** (`npm run pages:deploy`) builds on your machine, so it
+  uses your local `.env` and ignores the dashboard entirely. Only a Git push
+  proves a dashboard variable actually works.
+
+Where each value lives:
+
+| Variable | Owner | Why |
+| --- | --- | --- |
+| `PUBLIC_CDN_URL` | `.env.production`, committed | Public, and needed for a fresh clone to build correctly. |
+| `GTM_ID` | Cloudflare dashboard only | Editable without a commit; deliberately not in the repo. |
+| `STEAMGRIDDB_API_KEY` | local `.env`, gitignored | An actual credential. |
+
+`perf-check.mjs` fails the build on a GTM id that is malformed, missing from
+the output, or different from the environment, and says so out loud when there
+is no `GTM_ID` at all — because that case otherwise looks exactly like success.
+
 ### Commands
 
 ```bash
