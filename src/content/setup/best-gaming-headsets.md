@@ -37,7 +37,7 @@ products:
       - "Nothing to charge, nothing to pair, nothing to update"
     cons:
       - "Detachable microphone is merely acceptable"
-cover: "https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/covers/best-gaming-headsets.webp"
+cover: "/img/covers/best-gaming-headsets.webp"
 coverAlt: "A Counter-Strike 2 competitive scene"
 coverCredit: "Artwork: Counter-Strike 2 — via Steam"
 ---
@@ -45,7 +45,7 @@ coverCredit: "Artwork: Counter-Strike 2 — via Steam"
 Most gaming headsets are judged on how they sound in a demo and how they look in a photograph. Neither predicts whether you will still want to wear one after three hours.
 
 <figure>
-  <img src="https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/shots/counter-strike-2-4.webp" alt="A first-person angle where footstep audio decides the duel" width="1920" height="1080" loading="lazy" />
+  <img src="/img/shots/counter-strike-2-4.webp" alt="A first-person angle where footstep audio decides the duel" width="1920" height="1080" loading="lazy" />
   <figcaption>Positional audio is the only headset feature that changes how you play. Screenshot: Counter-Strike 2 — via Steam</figcaption>
 </figure>
 
@@ -58,7 +58,7 @@ Microphone recordings in a normal room, not a booth, because that is where you w
 Weight matters less than pressure distribution. A 320g headset with a wide, soft band is more comfortable than a 260g one that concentrates its clamp on two points. If you wear glasses, this difference is the entire buying decision.
 
 <figure>
-  <img src="https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/shots/counter-strike-2-5.webp" alt="A quiet corridor before an engagement" width="1920" height="1080" loading="lazy" />
+  <img src="/img/shots/counter-strike-2-5.webp" alt="A quiet corridor before an engagement" width="1920" height="1080" loading="lazy" />
   <figcaption>The quiet moments are the real test: footsteps, not explosions. Screenshot: Counter-Strike 2 — via Steam</figcaption>
 </figure>
 

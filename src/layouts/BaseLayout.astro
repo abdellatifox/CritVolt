@@ -4,7 +4,9 @@ import Header from '../components/Header.astro';
 import AdBand from '../components/AdBand.astro';
 import Footer from '../components/Footer.astro';
 import SearchOverlay from '../components/SearchOverlay.astro';
-import { SITE } from '../consts';
+import { SITE, GTM_ID } from '../consts';
+import { CDN_BASE, CDN_IS_REMOTE } from '../lib/cdn';
+import GoogleTagManager from '../components/GoogleTagManager.astro';
 
 /**
  * Every page renders through this. It owns the <head>, which means SEO can
@@ -60,6 +62,23 @@ const fullTitle = title === SITE.name ? `${SITE.name} — ${SITE.tagline}` : `${
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
     <meta name="theme-color" content={SITE.themeColor} />
+
+    {/*
+      Images are served from R2, which is a different origin: the browser has
+      to do a DNS lookup, a TCP connect and a TLS handshake before it can even
+      request the LCP cover. Preconnecting overlaps all three with HTML
+      parsing. Without this, moving images off-origin is a net LCP loss - the
+      same request-chain problem that made the third-party font stylesheet so
+      expensive. It sits above <title> so it is the first thing discovered.
+    */}
+    {
+      CDN_IS_REMOTE && (
+        <>
+          <link rel="preconnect" href={new URL(CDN_BASE).origin} crossorigin />
+          <link rel="dns-prefetch" href={new URL(CDN_BASE).origin} />
+        </>
+      )
+    }
 
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
@@ -120,9 +139,21 @@ const fullTitle = title === SITE.name ? `${SITE.name} — ${SITE.tagline}` : `${
         <script is:inline type="application/ld+json" set:html={JSON.stringify(data)} />
       ))
     }
+    {/*
+      Last in <head>, not first.
+
+      Google's docs say "as high as possible", which is about measurement
+      accuracy and costs a few milliseconds of it. Placed above, the injected
+      gtm.js is discovered before the LCP preload and the fonts and competes
+      with them for bandwidth on exactly the requests that decide the score.
+      Below them, the browser starts the cover and the fonts first and GTM
+      fills the gap. The tag still fires on the same page load.
+    */}
+    <GoogleTagManager id={GTM_ID} placement="head" />
   </head>
 
   <body>
+    <GoogleTagManager id={GTM_ID} placement="body" />
     <a class="skip-link" href="#main">Skip to content</a>
     <Header />
     {ads && <AdBand id={`${adKey}-band-leaderboard`} />}

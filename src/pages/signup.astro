@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { SITE, CATEGORIES, NEWSLETTER_ACTION } from '../consts';
+import { SITE, CATEGORIES, NEWSLETTER_ACTION, NEWSLETTER_IS_LOCAL } from '../consts';
+import NewsletterEnhance from '../components/NewsletterEnhance.astro';
 
 const perks = [
   'One email a week — the guides, reviews and hardware picks worth your time.',
@@ -26,7 +27,7 @@ const perks = [
         {perks.map((p) => <li>{p}</li>)}
       </ul>
 
-      <form class="signup-form" action={NEWSLETTER_ACTION} method="post">
+      <form class="signup-form" data-newsletter="signup-page" action={NEWSLETTER_ACTION} method="post">
         <label class="sr-only" for="email">Email address</label>
         <input
           id="email"
@@ -39,16 +40,19 @@ const perks = [
         <button class="btn btn--buy" type="submit">Sign up</button>
       </form>
 
+      <NewsletterEnhance />
+
       <p class="small">
         We use your address for this newsletter and nothing else. Unsubscribe from any
         email in one click.
       </p>
 
       {
-        import.meta.env.DEV && !NEWSLETTER_ACTION && (
+        import.meta.env.DEV && NEWSLETTER_IS_LOCAL && (
           <p class="devnote">
-            Dev note: this form has no endpoint yet. Set <code>NEWSLETTER_ACTION</code> in{' '}
-            <code>src/consts.ts</code> to your email provider's form URL.
+            Dev note: sign-ups POST to <code>/api/subscribe</code> and land in the D1{' '}
+            <code>subscribers</code> table. Set <code>PUBLIC_NEWSLETTER_ACTION</code> to
+            post to a hosted provider instead.
           </p>
         )
       }

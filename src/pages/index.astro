@@ -1,4 +1,6 @@
 ---
+import { cdn } from '../lib/cdn';
+import NewsletterEnhance from '../components/NewsletterEnhance.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ArticleCard from '../components/ArticleCard.astro';
 import Thumb from '../components/Thumb.astro';
@@ -53,7 +55,7 @@ const jsonLd = [
   preloadImage={
     lead?.data.cover
       ? {
-          src: lead.data.cover,
+          src: cdn(lead.data.cover)!,
           srcset: srcsetFor(lead.data.cover),
           sizes: '(max-width: 900px) 100vw, 760px',
         }
@@ -263,7 +265,7 @@ const jsonLd = [
   <div class="wrap block">
     <section class="signup-band">
       <span class="sb-mark" aria-hidden="true">
-        <img src="https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/mark.webp" alt="" width="52" height="52" loading="lazy" decoding="async" />
+        <img src="/mark.webp" alt="" width="52" height="52" loading="lazy" decoding="async" />
       </span>
 
       <div class="sb-copy">
@@ -274,7 +276,7 @@ const jsonLd = [
 
       {/* Posts to the same endpoint as /signup - one NEWSLETTER_ACTION for the
           whole site, so this field is never a decoration. */}
-      <form class="sb-form" action={NEWSLETTER_ACTION} method="post">
+      <form class="sb-form" data-newsletter="home-band" action={NEWSLETTER_ACTION} method="post">
         <div class="sb-row">
           <label class="sr-only" for="band-email">Email address</label>
           <input
@@ -289,6 +291,8 @@ const jsonLd = [
         </div>
         <span class="sb-note">Free. Unsubscribe any time.</span>
       </form>
+
+      <NewsletterEnhance />
     </section>
   </div>
 </BaseLayout>

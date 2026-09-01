@@ -39,7 +39,7 @@ products:
       - "Fits small cases and modest supplies"
     cons:
       - "Ray tracing needs upscaling to stay comfortable"
-cover: "https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/covers/best-gpu-resident-evil-requiem.webp"
+cover: "/img/covers/best-gpu-resident-evil-requiem.webp"
 coverAlt: "Resident Evil Requiem key art"
 coverCredit: "Screenshot: Resident Evil Requiem — via Steam"
 ---
@@ -54,7 +54,7 @@ the frame rate is generous, the texture settings are not.
 coping at 1440p. When they do, the symptom is not a lower average frame rate — it
 is stutter, which averages hide completely.
 <figure>
-  <img src="https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/shots/resident-evil-requiem-3.webp" alt="A high-detail environment in Resident Evil Requiem" width="1920" height="1080" loading="lazy" />
+  <img src="/img/shots/resident-evil-requiem-3.webp" alt="A high-detail environment in Resident Evil Requiem" width="1920" height="1080" loading="lazy" />
   <figcaption>The high texture preset is where 8GB cards stop coping at 1440p. Screenshot: Resident Evil Requiem — via Steam</figcaption>
 </figure>
 
@@ -63,7 +63,7 @@ is stutter, which averages hide completely.
 without it that turning it off is a legitimate choice rather than a compromise,
 especially on mid-range hardware.
 <figure>
-  <img src="https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/shots/resident-evil-requiem-2.webp" alt="A lit interior in Resident Evil Requiem" width="1920" height="1080" loading="lazy" />
+  <img src="/img/shots/resident-evil-requiem-2.webp" alt="A lit interior in Resident Evil Requiem" width="1920" height="1080" loading="lazy" />
   <figcaption>Requiem’s baked lighting is strong enough that turning ray tracing off is a real option. Screenshot: Resident Evil Requiem — via Steam</figcaption>
 </figure>
 

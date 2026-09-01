@@ -4,7 +4,7 @@ description: "The two protagonists play like different games. Here is what each 
 pubDate: 2026-08-28
 author: "Priya Nair"
 game: "Assassin's Creed Shadows"
-cover: "https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/covers/assassins-creed-shadows-naoe-or-yasuke.webp"
+cover: "/img/covers/assassins-creed-shadows-naoe-or-yasuke.webp"
 coverAlt: "A rider crossing open country in Assassin's Creed Shadows"
 coverCredit: "Screenshot: Assassin's Creed Shadows — via Steam"
 platforms: ["PC", "PS5", "Xbox Series X|S"]
@@ -24,7 +24,7 @@ her toolkit is built around never being seen in the first place rather than
 surviving being seen.
 
 <figure>
-  <img src="https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/shots/assassin-s-creed-shadows-3.webp" alt="A snowbound encounter in Assassin's Creed Shadows" width="1920" height="1080" loading="lazy" />
+  <img src="/img/shots/assassin-s-creed-shadows-3.webp" alt="A snowbound encounter in Assassin's Creed Shadows" width="1920" height="1080" loading="lazy" />
   <figcaption>Naoe's routes exist above the level. Yasuke does not get them. Screenshot: Assassin's Creed Shadows — via Steam</figcaption>
 </figure>
 
@@ -38,7 +38,7 @@ Heavy, direct, and far more forgiving of a plan that falls apart. Yasuke turns a
 compound you would have unpicked for twenty minutes into a five-minute fight.
 
 <figure>
-  <img src="https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/shots/assassin-s-creed-shadows-2.webp" alt="Yasuke in combat in Assassin's Creed Shadows" width="1920" height="1080" loading="lazy" />
+  <img src="/img/shots/assassin-s-creed-shadows-2.webp" alt="Yasuke in combat in Assassin's Creed Shadows" width="1920" height="1080" loading="lazy" />
   <figcaption>Yasuke's answer to a locked gate is the gate. Screenshot: Assassin's Creed Shadows — via Steam</figcaption>
 </figure>
 

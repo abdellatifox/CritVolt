@@ -8,6 +8,7 @@
  * instead of leaving a grey hole.
  */
 import widths from '../data/image-widths.json';
+import { cdn } from '../lib/cdn';
 
 interface Props {
   src?: string;
@@ -45,11 +46,17 @@ const {
  * file still renders before the script has been run.
  */
 const available: number[] = (widths as Record<string, number[]>)[src ?? ''] ?? [];
+
+// The manifest is keyed by the root-relative path, so look up first and only
+// then resolve to the CDN. Keying it by URL would rebuild the manifest every
+// time the CDN host changed.
 const srcset = available.length
   ? available
-      .map((w: number) => `${src!.replace(/\.webp$/, '')}@${w}w.webp ${w}w`)
+      .map((w: number) => `${cdn(src!.replace(/\.webp$/, `@${w}w.webp`))} ${w}w`)
       .join(', ')
   : undefined;
+
+const resolved = cdn(src);
 
 /** Stable string hash so the same article always gets the same cover. */
 function hash(s: string): number {
@@ -82,7 +89,7 @@ const monogram = (meaningful.length ? meaningful : words)
 {
   src ? (
     <img
-      src={src}
+      src={resolved}
       srcset={srcset}
       sizes={srcset ? (sizes ?? '100vw') : undefined}
       alt={alt}

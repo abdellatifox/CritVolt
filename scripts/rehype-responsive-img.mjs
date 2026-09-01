@@ -13,6 +13,10 @@
  *
  * Handles `raw` nodes as well as parsed elements: Astro keeps embedded HTML as
  * raw until rehype-raw runs, and plugin order is not guaranteed.
+ *
+ * It also rewrites `src` to the CDN. Articles keep root-relative paths so the
+ * asset host is never baked into content - astro.config passes the base in,
+ * mirroring what src/lib/cdn.ts does for component-rendered images.
  */
 
 import { readFileSync, existsSync } from 'node:fs';
@@ -28,13 +32,20 @@ const widths = existsSync(MANIFEST) ? JSON.parse(readFileSync(MANIFEST, 'utf8'))
 /** How wide an in-article image renders: the prose column, capped at 900px. */
 const SIZES = '(max-width: 1000px) 100vw, 900px';
 
-function srcsetFor(src) {
-  const ws = widths[src];
-  if (!ws?.length) return null;
-  return ws.map((w) => `${src.replace(/\.webp$/, '')}@${w}w.webp ${w}w`).join(', ');
-}
+export default function rehypeResponsiveImg({ cdnBase = '' } = {}) {
+  const base = String(cdnBase).trim().replace(/\/+$/, '');
 
-export default function rehypeResponsiveImg() {
+  /** Same contract as src/lib/cdn.ts: only /img/ moves to the CDN. */
+  const cdn = (p) => (base && p.startsWith('/img/') ? base + p : p);
+
+  const srcsetFor = (src) => {
+    const ws = widths[src];
+    if (!ws?.length) return null;
+    return ws
+      .map((w) => `${cdn(src.replace(/\.webp$/, `@${w}w.webp`))} ${w}w`)
+      .join(', ');
+  };
+
   return (tree) => {
     visit(tree);
   };
@@ -44,12 +55,15 @@ export default function rehypeResponsiveImg() {
 
     if (node.type === 'element' && node.tagName === 'img') {
       const src = node.properties?.src;
-      if (typeof src === 'string' && !node.properties.srcSet) {
-        const set = srcsetFor(src);
-        if (set) {
-          node.properties.srcSet = set;
-          node.properties.sizes = SIZES;
+      if (typeof src === 'string') {
+        if (!node.properties.srcSet) {
+          const set = srcsetFor(src);
+          if (set) {
+            node.properties.srcSet = set;
+            node.properties.sizes = SIZES;
+          }
         }
+        node.properties.src = cdn(src);
       }
     }
 

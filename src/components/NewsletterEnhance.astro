@@ -1,0 +1,96 @@
+---
+/**
+ * Progressive enhancement for the sign-up forms.
+ *
+ * The forms are real <form action="/api/subscribe" method="post"> elements and
+ * work with JavaScript switched off - the endpoint accepts form-encoded bodies
+ * for exactly that reason. This upgrades them to a fetch so the reader keeps
+ * their scroll position and sees the result inline instead of landing on a
+ * bare JSON response.
+ *
+ * Included once per page that has a form. Binds by [data-newsletter] rather
+ * than by class, so the home band and /signup can keep their own styling.
+ */
+---
+
+<script>
+  // Not `is:inline`: letting Astro bundle this means TypeScript actually
+  // checks it. An earlier inline script shipped a null-dereference precisely
+  // because nothing was type-checking it.
+  const forms = document.querySelectorAll<HTMLFormElement>('form[data-newsletter]');
+
+  for (const form of forms) {
+    // A third-party provider expects its own redirect flow, so only intercept
+    // when the form posts to our own endpoint.
+    if (!form.getAttribute('action')?.startsWith('/api/')) continue;
+
+    const status = document.createElement('p');
+    status.className = 'nl-status';
+    status.setAttribute('role', 'status');
+    status.setAttribute('aria-live', 'polite');
+    form.insertAdjacentElement('afterend', status);
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const input = form.querySelector<HTMLInputElement>('input[name="email"]');
+      const button = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+      const email = input?.value.trim() ?? '';
+      if (!email) return;
+
+      const label = button?.textContent ?? '';
+      if (button) {
+        button.disabled = true;
+        button.textContent = 'Sending…';
+      }
+      status.textContent = '';
+      status.dataset.state = '';
+
+      try {
+        const res = await fetch(form.action, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            email,
+            // Which form it came from, so the D1 rows can be told apart later.
+            source: form.dataset.newsletter || 'site',
+          }),
+        });
+
+        const data = (await res.json()) as { ok?: boolean; message?: string; error?: string };
+
+        if (res.ok && data.ok) {
+          status.dataset.state = 'ok';
+          status.textContent = data.message ?? "You're on the list.";
+          form.reset();
+        } else {
+          status.dataset.state = 'error';
+          status.textContent = data.error ?? 'Something went wrong. Try again.';
+        }
+      } catch {
+        status.dataset.state = 'error';
+        status.textContent = 'Network error. Try again.';
+      } finally {
+        if (button) {
+          button.disabled = false;
+          button.textContent = label;
+        }
+      }
+    });
+  }
+</script>
+
+<style is:global>
+  .nl-status {
+    margin: 0.6rem 0 0;
+    font-size: 0.85rem;
+    min-height: 1.2em;
+    color: var(--muted);
+  }
+  .nl-status[data-state='ok'] {
+    color: var(--cat-guides);
+  }
+  .nl-status[data-state='error'] {
+    color: var(--accent-soft);
+  }
+</style>

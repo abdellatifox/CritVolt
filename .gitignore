@@ -1,10 +1,13 @@
 node_modules/
 dist/
 .astro/
-# Every env file except the checked-in template.
+# Every env file except the checked-in template and the public production
+# values. .env.production holds only PUBLIC_ variables, which are baked into
+# the HTML anyway - see the header in that file.
 .env
 .env.*
 !.env.example
+!.env.production
 .DS_Store
 # Host build output, in case a deploy is ever run locally.
 .vercel/

@@ -9,7 +9,7 @@ difficulty: "Easy"
 tags: ["Resident Evil Requiem", "Settings"]
 featured: false
 draft: false
-cover: "https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/covers/resident-evil-requiem-first-vs-third-person.webp"
+cover: "/img/covers/resident-evil-requiem-first-vs-third-person.webp"
 coverAlt: "A Raccoon City street sign in Resident Evil Requiem"
 coverCredit: "Screenshot: Resident Evil Requiem — via Steam"
 ---
@@ -24,7 +24,7 @@ The less obvious part is your peripheral awareness of the room. Item pickups sit
 outside your view far more often, which slows exploration and makes backtracking
 more common.
 <figure>
-  <img src="https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/shots/resident-evil-requiem-10.webp" alt="A dark interior in Resident Evil Requiem" width="1920" height="1080" loading="lazy" />
+  <img src="/img/shots/resident-evil-requiem-10.webp" alt="A dark interior in Resident Evil Requiem" width="1920" height="1080" loading="lazy" />
   <figcaption>First-person hides everything outside a narrow cone - which is the point, and the cost. Screenshot: Resident Evil Requiem — via Steam</figcaption>
 </figure>
 
@@ -37,7 +37,7 @@ more than it sounds when something is chasing you down a corridor.
 Third-person also makes crowds readable. Any encounter with more than two enemies
 is meaningfully easier from behind the shoulder.
 <figure>
-  <img src="https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/shots/resident-evil-requiem-2.webp" alt="Resident Evil Requiem seen from the third-person camera" width="1920" height="1080" loading="lazy" />
+  <img src="/img/shots/resident-evil-requiem-2.webp" alt="Resident Evil Requiem seen from the third-person camera" width="1920" height="1080" loading="lazy" />
   <figcaption>Third-person trades dread for information. In a crowded room, information wins. Screenshot: Resident Evil Requiem — via Steam</figcaption>
 </figure>
 

@@ -5,7 +5,7 @@ pubDate: 2026-08-26
 author: "Priya Nair"
 hardwareType: "peripheral"
 game: "Forza Horizon 6"
-cover: "https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/covers/best-wheel-forza-horizon-6.webp"
+cover: "/img/covers/best-wheel-forza-horizon-6.webp"
 coverAlt: "Forza Horizon 6 key art"
 coverCredit: "Screenshot: Forza Horizon 6 — via Steam"
 tags: ["Racing Wheel", "Buying Guide", "Forza Horizon 6"]
@@ -49,7 +49,7 @@ are not chasing tenths — you are chasing the moment grip goes away, which is a
 question of feedback detail rather than raw strength.
 
 <figure>
-  <img src="https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/shots/forza-horizon-6-2.webp" alt="A car cornering in Forza Horizon 6" width="1920" height="1080" loading="lazy" />
+  <img src="/img/shots/forza-horizon-6-2.webp" alt="A car cornering in Forza Horizon 6" width="1920" height="1080" loading="lazy" />
   <figcaption>Horizon's handling asks a wheel to tell you about grip, not to fight you. Screenshot: Forza Horizon 6 — via Steam</figcaption>
 </figure>
 
@@ -65,7 +65,7 @@ degrees is the useful window; more is a simulator feature you will not use.
 your budget is fixed, a cheaper wheel plus better pedals beats the reverse.
 
 <figure>
-  <img src="https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/shots/forza-horizon-6-4.webp" alt="Cars gathered at a meet in Forza Horizon 6" width="1920" height="1080" loading="lazy" />
+  <img src="/img/shots/forza-horizon-6-4.webp" alt="Cars gathered at a meet in Forza Horizon 6" width="1920" height="1080" loading="lazy" />
   <figcaption>A wheel changes how the whole game feels — more than any other peripheral. Screenshot: Forza Horizon 6 — via Steam</figcaption>
 </figure>
 

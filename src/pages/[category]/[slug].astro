@@ -1,5 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
+import { cdn } from '../../lib/cdn';
+import ViewBeacon from '../../components/ViewBeacon.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ArticleCard from '../../components/ArticleCard.astro';
 import ProductCard from '../../components/ProductCard.astro';
@@ -119,7 +121,7 @@ const jsonLd = [articleSchema, breadcrumbSchema, ...(reviewSchema ? [reviewSchem
   preloadImage={
     d.cover
       ? {
-          src: d.cover,
+          src: cdn(d.cover)!,
           srcset: srcsetFor(d.cover),
           sizes: '(max-width: 1000px) 100vw, 900px',
         }
@@ -283,7 +285,7 @@ const jsonLd = [articleSchema, breadcrumbSchema, ...(reviewSchema ? [reviewSchem
 
         <section class="signup-band">
           <span class="sb-mark" aria-hidden="true">
-            <img src="https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/mark.webp" alt="" width="52" height="52" loading="lazy" decoding="async" />
+            <img src="/mark.webp" alt="" width="52" height="52" loading="lazy" decoding="async" />
           </span>
 
           <div class="sb-copy">
@@ -352,6 +354,7 @@ const jsonLd = [articleSchema, breadcrumbSchema, ...(reviewSchema ? [reviewSchem
   <AdAnchor id={`${category}-anchor`} />
 
   <BackToTop />
+  <ViewBeacon />
 </BaseLayout>
 
 <style>

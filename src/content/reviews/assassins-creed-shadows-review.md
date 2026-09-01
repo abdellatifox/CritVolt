@@ -20,7 +20,7 @@ pros:
 cons:
   - "The two halves rarely need each other"
   - "Systems pile up faster than the game explains them"
-cover: "https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/covers/assassins-creed-shadows-review.webp"
+cover: "/img/covers/assassins-creed-shadows-review.webp"
 coverAlt: "Assassin's Creed Shadows key art"
 coverCredit: "Screenshot: Assassin's Creed Shadows — via Steam"
 ---
@@ -40,7 +40,7 @@ brief chase.
 The prone system and the light-and-shadow model do real work. Blowing out a
 lantern is a decision, not a flourish.
 <figure>
-  <img src="https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/shots/assassin-s-creed-shadows-2.webp" alt="A ridge overlooking the valley in Assassin’s Creed Shadows" width="1920" height="1080" loading="lazy" />
+  <img src="/img/shots/assassin-s-creed-shadows-2.webp" alt="A ridge overlooking the valley in Assassin’s Creed Shadows" width="1920" height="1080" loading="lazy" />
   <figcaption>Light is a system here, not a lighting pass. The whole stealth layer plays around it. Screenshot: Assassin's Creed Shadows — via Steam</figcaption>
 </figure>
 
@@ -60,7 +60,7 @@ Feudal Japan is a setting the series was always going to reach, and the version
 here is unusually restrained. Fewer icons, more looking. The seasons are the
 standout: they change traversal and stealth, not just the colour palette.
 <figure>
-  <img src="https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/shots/assassin-s-creed-shadows-8.webp" alt="A seasonal landscape in Assassin’s Creed Shadows" width="1920" height="1080" loading="lazy" />
+  <img src="/img/shots/assassin-s-creed-shadows-8.webp" alt="A seasonal landscape in Assassin’s Creed Shadows" width="1920" height="1080" loading="lazy" />
   <figcaption>Seasons change how you move, not just how it looks - the best structural idea in the game. Screenshot: Assassin's Creed Shadows — via Steam</figcaption>
 </figure>
 

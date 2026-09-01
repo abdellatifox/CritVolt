@@ -8,7 +8,7 @@ source: "https://www.rockstargames.com/newswire"
 tags: ["Grand Theft Auto VI", "Rockstar"]
 featured: true
 draft: false
-cover: "https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/covers/gta-6-november-release-date.webp"
+cover: "/img/covers/gta-6-november-release-date.webp"
 coverAlt: "Vice City skyline in Grand Theft Auto VI"
 coverCredit: "Artwork: Grand Theft Auto VI — via SteamGridDB"
 

@@ -20,7 +20,7 @@ pros:
 cons:
   - "Ship handling takes longer to click than it should"
   - "Story is told almost entirely through things you might miss"
-cover: "https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/covers/quantum-void-review.webp"
+cover: "/img/covers/quantum-void-review.webp"
 coverAlt: "Quantum Void key art"
 coverCredit: "Artwork: Quantum Void — via Steam"
 ---

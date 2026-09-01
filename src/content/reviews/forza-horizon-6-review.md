@@ -9,7 +9,7 @@ verdict: "The best-driving Horizon yet, on a map that finally rewards precision 
 platforms: ["PC", "Xbox Series X|S"]
 developer: "Playground Games"
 publisher: "Xbox Game Studios"
-cover: "https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/covers/forza-horizon-6-review.webp"
+cover: "/img/covers/forza-horizon-6-review.webp"
 coverAlt: "Forza Horizon 6 key art"
 coverCredit: "Screenshot: Forza Horizon 6 — via Steam"
 tags: ["Forza Horizon 6", "Racing"]
@@ -34,7 +34,7 @@ grid gives Playground road types that ask different things of the same car, and
 the map is small enough that you meet all of them regularly.
 
 <figure>
-  <img src="https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/shots/forza-horizon-6-5.webp" alt="A coastal road in Forza Horizon 6" width="1920" height="1080" loading="lazy" />
+  <img src="/img/shots/forza-horizon-6-5.webp" alt="A coastal road in Forza Horizon 6" width="1920" height="1080" loading="lazy" />
   <figcaption>The map is smaller than Horizon 5's and considerably better for it. Screenshot: Forza Horizon 6 — via Steam</figcaption>
 </figure>
 
@@ -53,7 +53,7 @@ Horizon 3. Three games later it mostly gets in the way of a driving game that no
 longer needs the distraction.
 
 <figure>
-  <img src="https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/shots/forza-horizon-6-6.webp" alt="An event start in Forza Horizon 6" width="1920" height="1080" loading="lazy" />
+  <img src="/img/shots/forza-horizon-6-6.webp" alt="An event start in Forza Horizon 6" width="1920" height="1080" loading="lazy" />
   <figcaption>The driving grew up. The scaffolding around it did not. Screenshot: Forza Horizon 6 — via Steam</figcaption>
 </figure>
 

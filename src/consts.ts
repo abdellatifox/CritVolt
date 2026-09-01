@@ -4,8 +4,6 @@
  * nav, category pages, colours, badges and the sitemap all read from this file.
  */
 
-export const CDN = 'https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev';
-
 export const SITE = {
   name: 'CritVolt',
   tagline: 'Guides, News, Reviews & Gaming Setups',
@@ -91,13 +89,37 @@ export const SOCIALS = [
 export const PAGE_SIZE = 12;
 
 /**
- * Where the sign-up form POSTs. Paste the form endpoint from your email
- * provider (Buttondown, ConvertKit, Mailchimp, Beehiiv — they all give you one).
- * Left empty the form is inert, which is why the page says so in dev.
+ * Where the sign-up form POSTs.
  *
- * Set PUBLIC_NEWSLETTER_ACTION in the environment to override it without
- * editing code. PUBLIC_ because the value is baked into the form's action
- * attribute and is therefore visible to everyone - it is an endpoint, not a
- * secret, and Astro only exposes PUBLIC_-prefixed variables to output.
+ * Defaults to this site's own /api/subscribe, which writes to the D1
+ * `subscribers` table. It used to default to an empty string, which made both
+ * sign-up forms silently inert: they looked like working forms, accepted an
+ * address, and threw it away.
+ *
+ * Set PUBLIC_NEWSLETTER_ACTION to post somewhere else instead - a hosted
+ * provider like Buttondown, ConvertKit or Beehiiv - and the forms will use
+ * that without any code change. PUBLIC_ because the value is baked into the
+ * form's action attribute and is visible to everyone: it is an endpoint, not
+ * a secret, and Astro only exposes PUBLIC_-prefixed variables to output.
+ *
+ * The trailing slash is required, not cosmetic. This site sets
+ * `trailingSlash: 'always'`, which applies to API routes as well as pages:
+ * /api/subscribe is a 404 and only /api/subscribe/ resolves.
  */
-export const NEWSLETTER_ACTION: string = import.meta.env.PUBLIC_NEWSLETTER_ACTION ?? '';
+export const NEWSLETTER_ACTION: string =
+  import.meta.env.PUBLIC_NEWSLETTER_ACTION || '/api/subscribe/';
+
+/** True when sign-ups go to our own D1 rather than a third-party provider. */
+export const NEWSLETTER_IS_LOCAL: boolean = NEWSLETTER_ACTION === '/api/subscribe/';
+
+/**
+ * Google Tag Manager container ID.
+ *
+ * Empty means no tag manager and no third-party request at all, which is the
+ * right default for local development and preview builds - analytics should be
+ * something production opts into, not something every build drags along.
+ *
+ * PUBLIC_ because it is injected into the page and readable by anyone. It is a
+ * container ID, not a credential.
+ */
+export const GTM_ID: string = import.meta.env.PUBLIC_GTM_ID ?? '';

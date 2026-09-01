@@ -4,7 +4,7 @@ description: "Which early Forza Horizon 6 cars are worth your first credits, and
 pubDate: 2026-08-28
 author: "Marc Ellery"
 game: "Forza Horizon 6"
-cover: "https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/covers/forza-horizon-6-early-cars.webp"
+cover: "/img/covers/forza-horizon-6-early-cars.webp"
 coverAlt: "Forza Horizon 6 key art"
 coverCredit: "Artwork: Forza Horizon 6 — via Steam"
 platforms: ["PC", "Xbox Series X|S"]
@@ -24,7 +24,7 @@ it is on open motorway. That shifts the value away from top speed and toward
 mid-corner grip and throttle response.
 
 <figure>
-  <img src="https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/shots/forza-horizon-6-1.webp" alt="A car on a mountain road in Forza Horizon 6" width="1920" height="1080" loading="lazy" />
+  <img src="/img/shots/forza-horizon-6-1.webp" alt="A car on a mountain road in Forza Horizon 6" width="1920" height="1080" loading="lazy" />
   <figcaption>Most of the early map rewards corner exit, not top speed. Screenshot: Forza Horizon 6 — via Steam</figcaption>
 </figure>
 
@@ -41,7 +41,7 @@ many of those yet. Buying one early is credits spent on a car you will drive in
 about a fifth of the events.
 
 <figure>
-  <img src="https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/shots/forza-horizon-6-2.webp" alt="A city street in Forza Horizon 6" width="1920" height="1080" loading="lazy" />
+  <img src="/img/shots/forza-horizon-6-2.webp" alt="A city street in Forza Horizon 6" width="1920" height="1080" loading="lazy" />
   <figcaption>Dense city routes punish anything that needs a long straight to matter. Screenshot: Forza Horizon 6 — via Steam</figcaption>
 </figure>
 

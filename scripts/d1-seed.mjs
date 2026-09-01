@@ -1,0 +1,280 @@
+#!/usr/bin/env node
+/**
+ * Mirrors the editorial catalogue from src/content into D1.
+ *
+ *   npm run d1:seed              apply to the remote database
+ *   npm run d1:seed -- --local   apply to the local dev database
+ *   npm run d1:seed -- --sql     print the SQL and exit
+ *
+ * Direction matters: Markdown is the source of truth, D1 is the projection.
+ * Git is what reviews, diffs and builds the site, so content keeps living
+ * there; this makes the same catalogue queryable for the things a filesystem
+ * is bad at - "every article by this author", "most covered games", joins for
+ * a future admin view.
+ *
+ * Only the mirror tables are rebuilt. subscribers and page_views hold visitor
+ * data that exists nowhere else, so a deploy must never overwrite them.
+ */
+
+import { readdirSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { join, dirname, basename, extname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
+import { parse as parseYaml } from 'yaml';
+
+const HERE = dirname(fileURLToPath(import.meta.url));
+const ROOT = dirname(HERE);
+const CONTENT = join(ROOT, 'src', 'content');
+const TMP = join(ROOT, '.wrangler', 'tmp');
+
+const LOCAL = process.argv.includes('--local');
+const SQL_ONLY = process.argv.includes('--sql');
+const DB = 'critvolt-db';
+
+const c = {
+  dim: (s) => `\x1b[2m${s}\x1b[0m`,
+  green: (s) => `\x1b[32m${s}\x1b[0m`,
+  yellow: (s) => `\x1b[33m${s}\x1b[0m`,
+  red: (s) => `\x1b[31m${s}\x1b[0m`,
+  bold: (s) => `\x1b[1m${s}\x1b[0m`,
+};
+
+/** SQLite string literal. Doubling the quote is the whole escaping rule. */
+function q(v) {
+  if (v === undefined || v === null || v === '') return 'NULL';
+  return "'" + String(v).replace(/'/g, "''") + "'";
+}
+
+function num(v) {
+  return v === undefined || v === null || Number.isNaN(Number(v)) ? 'NULL' : String(Number(v));
+}
+
+function bool(v) {
+  return v ? '1' : '0';
+}
+
+function slugify(s) {
+  return String(s)
+    .toLowerCase()
+    .replace(/[‘’']/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function isoDate(v) {
+  if (!v) return null;
+  const d = v instanceof Date ? v : new Date(v);
+  return Number.isNaN(Number(d)) ? String(v) : d.toISOString().slice(0, 10);
+}
+
+/**
+ * Must stay identical to readingMinutes() in src/lib/posts.ts — 220 wpm.
+ * If the two drift, D1 reports a different reading time than the byline the
+ * reader is looking at.
+ */
+function readingMinutes(body) {
+  const words = body.trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.round(words / 220));
+}
+
+function readFrontmatter(file) {
+  const raw = readFileSync(file, 'utf8');
+  const m = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/);
+  if (!m) return null;
+  return { data: parseYaml(m[1]) ?? {}, body: m[2] ?? '' };
+}
+
+function collect() {
+  const posts = [];
+  for (const category of readdirSync(CONTENT, { withFileTypes: true })) {
+    if (!category.isDirectory()) continue;
+    const dir = join(CONTENT, category.name);
+    for (const f of readdirSync(dir)) {
+      if (!/\.mdx?$/.test(f)) continue;
+      const parsed = readFrontmatter(join(dir, f));
+      if (!parsed) continue;
+      posts.push({
+        category: category.name,
+        slug: basename(f, extname(f)),
+        data: parsed.data,
+        body: parsed.body,
+      });
+    }
+  }
+  return posts;
+}
+
+/**
+ * Read the CATEGORIES array out of consts.ts as text.
+ *
+ * consts.ts is TypeScript, and this script has to run before (and independent
+ * of) any build step, so importing it is not an option.
+ */
+function loadCategories() {
+  const src = readFileSync(join(ROOT, 'src', 'consts.ts'), 'utf8');
+  const block = src.match(/CATEGORIES[^=]*=\s*\[([\s\S]*?)\n\];/);
+  if (!block) return [];
+
+  const out = [];
+  for (const m of block[1].matchAll(/\{([\s\S]*?)\n\s{2}\}/g)) {
+    const chunk = m[1];
+    const pick = (k) => chunk.match(new RegExp(k + ":\\s*'((?:[^'\\\\]|\\\\.)*)'"))?.[1];
+    const id = pick('id');
+    if (!id) continue;
+    out.push({
+      id,
+      label: pick('label') ?? id,
+      blurb: pick('blurb') ?? null,
+      color: pick('color') ?? null,
+    });
+  }
+  return out;
+}
+
+function buildSql(posts, categories) {
+  const authors = new Map();
+  const games = new Map();
+
+  for (const p of posts) {
+    const a = p.data.author;
+    if (a && !authors.has(a)) authors.set(a, slugify(a));
+    const g = p.data.game;
+    if (g && !games.has(g)) games.set(g, slugify(g));
+  }
+
+  let posters = {};
+  try {
+    posters = JSON.parse(readFileSync(join(ROOT, 'src', 'data', 'posters.json'), 'utf8'));
+  } catch {
+    /* poster art is optional */
+  }
+
+  const lines = [];
+  // No BEGIN/COMMIT here: D1 rejects explicit SQL transactions outright, and
+  // `wrangler d1 execute --file` already applies the whole file as one atomic
+  // batch, so wrapping it would be both illegal and redundant.
+  lines.push('-- Generated by scripts/d1-seed.mjs. Do not edit by hand.');
+
+  // Rebuild the mirror from scratch: a deleted article has to disappear, and a
+  // renamed one must not leave a ghost row behind. Child rows go first so the
+  // foreign keys stay satisfied the whole way through.
+  lines.push('DELETE FROM article_tags;');
+  lines.push('DELETE FROM articles;');
+  lines.push('DELETE FROM games;');
+  lines.push('DELETE FROM authors;');
+  lines.push('DELETE FROM categories;');
+
+  categories.forEach((cat, i) => {
+    lines.push(
+      'INSERT INTO categories (slug, label, blurb, color, sort) VALUES (' +
+        [q(cat.id), q(cat.label), q(cat.blurb), q(cat.color), i].join(', ') +
+        ');',
+    );
+  });
+
+  for (const [name, slug] of authors) {
+    lines.push('INSERT INTO authors (slug, name) VALUES (' + [q(slug), q(name)].join(', ') + ');');
+  }
+
+  for (const [name, slug] of games) {
+    lines.push(
+      'INSERT INTO games (slug, name, poster) VALUES (' +
+        [q(slug), q(name), q(posters[slug])].join(', ') +
+        ');',
+    );
+  }
+
+  for (const p of posts) {
+    const d = p.data;
+    const url = '/' + p.category + '/' + p.slug + '/';
+    const authorSlug = d.author ? slugify(d.author) : null;
+    const gameSlug = d.game ? slugify(d.game) : null;
+
+    // SELECT rather than VALUES so the foreign keys resolve by slug. The
+    // alternative is tracking autoincrement ids in JS, which silently breaks
+    // the moment a row is inserted out of order.
+    lines.push(
+      'INSERT INTO articles (slug, url, category_id, author_id, game_id, title, ' +
+        'description, pub_date, cover, cover_alt, score, verdict, featured, draft, ' +
+        'reading_minutes) SELECT ' +
+        [
+          q(p.slug),
+          q(url),
+          '(SELECT id FROM categories WHERE slug = ' + q(p.category) + ')',
+          authorSlug ? '(SELECT id FROM authors WHERE slug = ' + q(authorSlug) + ')' : 'NULL',
+          gameSlug ? '(SELECT id FROM games WHERE slug = ' + q(gameSlug) + ')' : 'NULL',
+          q(d.title),
+          q(d.description),
+          q(isoDate(d.pubDate)),
+          q(d.cover),
+          q(d.coverAlt),
+          num(d.score),
+          q(d.verdict),
+          bool(d.featured),
+          bool(d.draft),
+          readingMinutes(p.body),
+        ].join(', ') +
+        ';',
+    );
+
+    for (const tag of d.tags ?? []) {
+      lines.push(
+        'INSERT OR IGNORE INTO article_tags (article_id, tag) SELECT ' +
+          '(SELECT id FROM articles WHERE url = ' + q(url) + '), ' + q(tag) + ';',
+      );
+    }
+  }
+
+
+  return { sql: lines.join('\n') + '\n', authors, games };
+}
+
+function main() {
+  const posts = collect();
+  const categories = loadCategories();
+
+  // A parse failure upstream would otherwise arrive here as "zero articles"
+  // and quietly empty the mirror, so refuse rather than apply.
+  if (!posts.length) {
+    console.error(c.red('\nNo content found under src/content — refusing to wipe the mirror.\n'));
+    process.exit(1);
+  }
+  if (!categories.length) {
+    console.error(c.red('\nCould not read CATEGORIES from src/consts.ts — refusing to seed.\n'));
+    process.exit(1);
+  }
+
+  const { sql, authors, games } = buildSql(posts, categories);
+
+  if (SQL_ONLY) {
+    process.stdout.write(sql);
+    return;
+  }
+
+  mkdirSync(TMP, { recursive: true });
+  const file = join(TMP, 'seed.sql');
+  writeFileSync(file, sql);
+
+  console.log(c.bold('\nSeeding D1 ') + c.dim(LOCAL ? '(local)' : '(remote)') + '\n');
+  console.log('  ' + categories.length + ' categories');
+  console.log('  ' + authors.size + ' authors');
+  console.log('  ' + games.size + ' games');
+  console.log('  ' + posts.length + ' articles');
+
+  const r = spawnSync(
+    'npx',
+    ['wrangler', 'd1', 'execute', DB, '--file', '"' + file + '"', LOCAL ? '--local' : '--remote', '-y'],
+    { shell: true, stdio: 'inherit' },
+  );
+
+  if (r.status !== 0) {
+    console.error(c.red('\n  Seed failed.\n'));
+    process.exit(1);
+  }
+
+  console.log(
+    c.green('\n  Mirror updated.') + c.dim(' subscribers and page_views were not touched.\n'),
+  );
+}
+
+main();

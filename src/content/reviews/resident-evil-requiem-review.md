@@ -9,7 +9,7 @@ verdict: "Capcom's tightest survival horror in years. The camera options are a n
 platforms: ["PC", "PS5", "Xbox Series X|S"]
 developer: "Capcom"
 publisher: "Capcom"
-cover: "https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/covers/resident-evil-requiem-review.webp"
+cover: "/img/covers/resident-evil-requiem-review.webp"
 coverAlt: "A ruined district in Resident Evil Requiem"
 coverCredit: "Screenshot: Resident Evil Requiem — via Steam"
 tags: ["Resident Evil Requiem", "Survival Horror"]
@@ -33,7 +33,7 @@ pressure but the gap between pressures, and it spends that gap well — letting 
 think you have a safe room, then quietly taking it away.
 
 <figure>
-  <img src="https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/shots/resident-evil-requiem-5.webp" alt="A night street in Resident Evil Requiem" width="1920" height="1080" loading="lazy" />
+  <img src="/img/shots/resident-evil-requiem-5.webp" alt="A night street in Resident Evil Requiem" width="1920" height="1080" loading="lazy" />
   <figcaption>Safety in Requiem is always provisional. Screenshot: Resident Evil Requiem — via Steam</figcaption>
 </figure>
 
@@ -49,7 +49,7 @@ Ammunition is tight without being punitive, and the game is honest about it: you
 can see what you are spending and what it costs you later.
 
 <figure>
-  <img src="https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/shots/resident-evil-requiem-2.webp" alt="Combat in Resident Evil Requiem" width="1920" height="1080" loading="lazy" />
+  <img src="/img/shots/resident-evil-requiem-2.webp" alt="Combat in Resident Evil Requiem" width="1920" height="1080" loading="lazy" />
   <figcaption>Every shot is a withdrawal from a balance the game shows you. Screenshot: Resident Evil Requiem — via Steam</figcaption>
 </figure>
 

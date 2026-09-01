@@ -1,0 +1,66 @@
+---
+/**
+ * Google Tag Manager.
+ *
+ * Renders nothing unless PUBLIC_GTM_ID is set, so local development and
+ * preview builds ship no analytics and no third-party request at all.
+ *
+ * This is the one third-party script on the site, and it is here rather than
+ * in a <script> tag someone pasted into a page because the container ID has to
+ * come from the environment and the placement has to stay correct: the
+ * dataLayer must exist before anything tries to push to it.
+ *
+ * On cost: the injected gtm.js is `async`, so it does not block rendering or
+ * first paint. It does cost main-thread time once it arrives, which shows up
+ * as Total Blocking Time rather than as a slower LCP. The preconnect below
+ * overlaps the DNS, TCP and TLS work with HTML parsing so the script arrives
+ * sooner and finishes earlier.
+ */
+
+interface Props {
+  /** Container ID, e.g. GTM-XXXXXXX. Falsy means render nothing. */
+  id?: string;
+  /** The <noscript> iframe belongs immediately after <body>, not in <head>. */
+  placement?: 'head' | 'body';
+}
+
+const { id, placement = 'head' } = Astro.props;
+
+// Guard against a malformed value silently loading a stranger's container.
+const valid = typeof id === 'string' && /^GTM-[A-Z0-9]+$/.test(id);
+---
+
+{
+  valid && placement === 'head' && (
+    <>
+      <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin />
+      {/*
+        Google's canonical snippet, kept verbatim and inline. It has to run
+        before any other script so window.dataLayer exists to push to, which
+        rules out letting the bundler move or defer it.
+      */}
+      <script
+        is:inline
+        set:html={`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','${id}');`}
+      />
+    </>
+  )
+}
+
+{
+  valid && placement === 'body' && (
+    <noscript>
+      <iframe
+        src={`https://www.googletagmanager.com/ns.html?id=${id}`}
+        height="0"
+        width="0"
+        style="display:none;visibility:hidden"
+        title="Google Tag Manager"
+      />
+    </noscript>
+  )
+}

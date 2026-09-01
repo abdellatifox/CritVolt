@@ -4,6 +4,7 @@ import type { CategoryId } from '../consts';
    check so nothing here depends on the filesystem - this file is imported by
    every page and must stay portable across adapters. */
 import posters from '../data/posters.json';
+import { cdn } from './cdn';
 import imageWidths from '../data/image-widths.json';
 
 /** A post from any section, normalised so components never care which one. */
@@ -177,5 +178,7 @@ export function srcsetFor(src: string | undefined): string | undefined {
   if (!src) return undefined;
   const ws = (imageWidths as Record<string, number[]>)[src];
   if (!ws?.length) return undefined;
-  return ws.map((w) => `${src.replace(/\.webp$/, '')}@${w}w.webp ${w}w`).join(', ');
+  return ws
+    .map((w) => `${cdn(src.replace(/\.webp$/, `@${w}w.webp`))} ${w}w`)
+    .join(', ');
 }

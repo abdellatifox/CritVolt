@@ -1,0 +1,45 @@
+# Cloudflare Pages configuration for CritVolt.
+#
+# The site is still a static build: all 38 pages are prerendered to HTML and
+# served straight off the CDN. The Worker this config attaches only ever runs
+# for the handful of routes under /api/, which are the routes marked
+# `export const prerender = false`. Everything else never touches it.
+#
+# That split is deliberate. Rendering pages per-request from D1 would undo the
+# work that took this site from 87 to 99 on mobile - a database round trip
+# cannot beat a file already sitting at the edge.
+
+name = "critvolt"
+compatibility_date = "2026-08-31"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "./dist"
+
+# Editorial catalogue (mirrored from src/content at build time) plus the
+# runtime tables: newsletter subscribers and page-view rollups.
+[[d1_databases]]
+binding = "DB"
+database_name = "critvolt-db"
+database_id = "5e06c64b-f632-4486-a8b6-51b1b3983323"
+
+# Edge cache for values that are expensive to recompute and fine a few minutes
+# stale: the trending list, and the per-IP counters that rate-limit sign-ups.
+[[kv_namespaces]]
+binding = "CACHE"
+id = "f3853c0ff12f4890985531440ed95c8b"
+
+# The Astro Cloudflare adapter wires Astro.session to a KV binding named
+# SESSION and fails the deploy with "Invalid binding `SESSION`" if it is
+# missing. Nothing uses sessions yet; this exists so that cannot break a
+# deploy, and it is kept separate from CACHE so session data and cached
+# values never share a keyspace.
+[[kv_namespaces]]
+binding = "SESSION"
+id = "c6c5221a2dfb4a5dbe37182afa7ab685"
+
+# Image storage. Reads go over the public CDN URL rather than this binding -
+# a bound Worker read would put a Worker invocation in front of every image.
+# The binding is here so server code can WRITE (future uploads) without
+# needing separate S3 credentials.
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "critvolt-assets"

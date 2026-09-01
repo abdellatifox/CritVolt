@@ -143,10 +143,16 @@ swap the index for [Pagefind](https://pagefind.app/) — the overlay stays the s
 
 ## Sign-up
 
-`/signup/` is a newsletter page with a plain HTML form. Set `NEWSLETTER_ACTION`
-in `src/consts.ts` to the form endpoint from your email provider (Buttondown,
-ConvertKit, Mailchimp and Beehiiv all give you one) and it starts working — no
-JavaScript involved. Until you do, the page shows a dev-only note.
+`/signup/` and the home-page band both POST to `/api/subscribe/`, which writes to
+the D1 `subscribers` table. They are ordinary HTML forms and work with JavaScript
+off; `NewsletterEnhance.astro` upgrades them to a fetch so the reader stays put
+and sees the result inline.
+
+To use a hosted provider instead (Buttondown, ConvertKit, Beehiiv), set
+`PUBLIC_NEWSLETTER_ACTION` to its form endpoint — no code change.
+
+Note the trailing slash: this site sets `trailingSlash: 'always'`, which applies
+to API routes too. `/api/subscribe` is a 404; only `/api/subscribe/` resolves.
 
 The header CTA is the only filled accent button in the layout, which is deliberate:
 one red button per screen keeps it reading as *the* action.
@@ -214,6 +220,57 @@ visible quality loss at the sizes this layout actually displays.
 They belong to whoever made them, and an infringement complaint costs you AdSense
 and your affiliate account — the two things this site earns from.
 
+## Cloudflare: R2, D1 and KV
+
+The site is **static with a thin dynamic edge**. All 38 pages are prerendered to
+HTML and served from the CDN; only the three routes under `src/pages/api/` run on
+a Worker. That split is the whole design — rendering articles per request from a
+database cannot beat a file already sitting at the edge, and it is where the 99
+mobile score comes from.
+
+| Store | Binding | Holds |
+| --- | --- | --- |
+| **R2** `critvolt-assets` | `MEDIA` | 265 image files. Reads go over the public CDN URL, not the binding — a bound read would put a Worker in front of every image. |
+| **D1** `critvolt-db` | `DB` | The editorial mirror (articles, authors, categories, games, tags) plus the runtime tables (subscribers, page_views). |
+| **KV** `CACHE` | `CACHE` | The trending list and per-IP rate-limit counters — small, hot, expiring values. |
+
+### Markdown is still the source of truth
+
+D1 does **not** own the content. `src/content/**/*.md` does. The build projects
+that catalogue into the mirror tables so it can be queried — "every article by
+this author", "most covered games", joins for a future admin view — but a deploy
+rebuilds those tables from scratch, so a direct write to them is overwritten.
+
+`subscribers` and `page_views` are the opposite: they hold data created by
+visitors that exists nowhere else, and nothing ever truncates them.
+
+### Where images live
+
+Images are authored as `/img/...` everywhere — in frontmatter, in markdown, in
+the manifests. `src/lib/cdn.ts` is the only place that decides which host serves
+them, driven by `PUBLIC_CDN_URL`.
+
+This indirection is not decoration. An earlier migration wrote the R2 hostname
+directly into 19 articles and ~30 `<img>` tags, pointed them at a bucket that had
+never been uploaded to, and deleted the local originals. Every image on the site
+404'd. Now switching hosts — or falling back to same-origin — is one variable,
+and `public/img/` stays in the repo as both the upload source and a working
+fallback if `PUBLIC_CDN_URL` is ever unset.
+
+### Commands
+
+```bash
+npm run deploy          # sync R2 -> build (+ budget) -> seed D1 -> deploy Pages
+npm run r2:sync         # upload public/img to R2, then verify over HTTP
+npm run r2:verify       # check only: are the objects actually public?
+npm run d1:migrate      # apply migrations/0001_init.sql
+npm run d1:seed         # rebuild the mirror from src/content
+npm run d1:sql          # print the seed SQL without running it
+```
+
+Add `:local` to the D1 commands to work against the dev database that
+`astro dev` uses through the platform proxy.
+
 ## Adding a fifth section
 
 1. Add an entry to `CATEGORIES` in `src/consts.ts` (id, label, href, colour token, blurb, intro).
@@ -240,10 +297,9 @@ underlines carry the section hue. All of it lives in the token block at the top 
 - [ ] Set the real domain in `astro.config.mjs` (`site:`) and `src/consts.ts` (`SITE.url`) — canonical URLs, sitemap and RSS all depend on it.
 - [ ] Update the sitemap URL in `public/robots.txt`.
 - [ ] Replace `AFFILIATE_IDS` in `src/lib/affiliate.ts` with your real tracking IDs.
-- [ ] Set `NEWSLETTER_ACTION` in `src/consts.ts` so the sign-up form actually submits.
+- [ ] Set `PUBLIC_CDN_URL` in the Pages environment, or images fall back to same-origin.
 - [ ] Replace `public/og-default.png` with a proper branded social image (1200x630).
 - [ ] Replace all sample content in `src/content/` — the games, products, prices and
       retailer links shipped here are **placeholders for layout only**.
 - [ ] Add real cover images to `public/img/covers/` and reference them via `cover:`.
-- [ ] Self-host the two Google Fonts if you want to remove the third-party request.
 - [ ] Run `npm run images` after adding any image by hand.

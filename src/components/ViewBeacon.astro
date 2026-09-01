@@ -1,0 +1,46 @@
+---
+/**
+ * Tells /api/view that this article was read.
+ *
+ * Deliberately cheap and deliberately late. It waits for the page to finish
+ * loading and then for an idle moment, so the request never competes with the
+ * LCP cover for bandwidth - the whole point of keeping the pages static is
+ * that nothing on the critical path talks to a database, and an eager beacon
+ * would quietly give that back.
+ *
+ * No cookie, no id, no fingerprint: the endpoint only ever increments a
+ * per-path, per-day counter, so there is nothing here that identifies anyone.
+ */
+---
+
+<script>
+  // Bundled rather than inline so it is type-checked like the rest of the site.
+  const send = () => {
+    const path = window.location.pathname;
+
+    const body = JSON.stringify({ path });
+
+    // keepalive lets the request outlive the page if the reader navigates
+    // away immediately, which is exactly when a short visit would be lost.
+    void fetch('/api/view/', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body,
+      keepalive: true,
+    }).catch(() => {
+      // Analytics must never surface to the reader.
+    });
+  };
+
+  const whenIdle = () => {
+    // Read the function off first rather than testing `'x' in window`: with
+    // the Workers types in scope that test narrows `window` itself, and the
+    // fallback branch stops type-checking.
+    const idle = window.requestIdleCallback;
+    if (typeof idle === 'function') idle.call(window, send, { timeout: 3000 });
+    else window.setTimeout(send, 1200);
+  };
+
+  if (document.readyState === 'complete') whenIdle();
+  else window.addEventListener('load', whenIdle, { once: true });
+</script>

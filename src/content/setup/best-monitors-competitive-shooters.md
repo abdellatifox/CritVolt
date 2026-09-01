@@ -37,7 +37,7 @@ products:
       - "No burn-in worry for long sessions"
     cons:
       - "1080p looks soft if you also use it for anything else"
-cover: "https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/covers/best-monitors-competitive-shooters.webp"
+cover: "/img/covers/best-monitors-competitive-shooters.webp"
 coverAlt: "Counter-Strike 2 key art"
 coverCredit: "Screenshot: Counter-Strike 2 — via Steam"
 ---
@@ -49,7 +49,7 @@ Refresh rate is the number everyone shops on and the least useful one past a poi
 Input lag measured end to end with a photodiode. Motion clarity assessed with a moving test pattern at fixed speeds, then confirmed in game. We do not quote manufacturer response times, which are measured under conditions that do not occur in practice.
 
 <figure>
-  <img src="https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/shots/counter-strike-2-1.webp" alt="A competitive shooter scene used for motion testing" width="1920" height="1080" loading="lazy" />
+  <img src="/img/shots/counter-strike-2-1.webp" alt="A competitive shooter scene used for motion testing" width="1920" height="1080" loading="lazy" />
   <figcaption>Motion clarity is judged on a moving target, never a still image. Screenshot: Counter-Strike 2 — via Steam</figcaption>
 </figure>
 
@@ -64,7 +64,7 @@ Check what frame rate you actually hit in your main game before spending anythin
 For competitive shooters specifically, 1080p at 24.5in remains the standard for a reason: it is easy to drive and the whole screen sits inside your focus. For everything else, 1440p at 27in is the better desk.
 
 <figure>
-  <img src="https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev/img/shots/counter-strike-2-2.webp" alt="A long sightline down a map corridor" width="1920" height="1080" loading="lazy" />
+  <img src="/img/shots/counter-strike-2-2.webp" alt="A long sightline down a map corridor" width="1920" height="1080" loading="lazy" />
   <figcaption>At 24.5in the whole sightline sits inside your focus. That is the case for 1080p. Screenshot: Counter-Strike 2 — via Steam</figcaption>
 </figure>
 
