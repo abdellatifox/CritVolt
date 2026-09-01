@@ -15,3 +15,8 @@ dist/
 .wrangler/
 # Scratch folder for poster review sheets.
 .poster-candidates/
+
+# Scratch file generated for the Cloudflare "Import .env" button. Holds only
+# PUBLIC_ values, but it duplicates .env.production, and two copies of the same
+# config is how they drift apart. Not tracked.
+cloudflare-import.env
