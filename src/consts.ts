@@ -76,6 +76,10 @@ export const SECONDARY_NAV = [
   { label: 'About', href: '/about/' },
   { label: 'Newsletter', href: '/signup/' },
   { label: 'Affiliate Disclosure', href: '/affiliate-disclosure/' },
+  // Reachable from the footer as well as the consent bar: once someone has
+  // answered, the bar never shows again, and a policy you can only find before
+  // dismissing it is not a policy anyone can consult.
+  { label: 'Cookie Policy', href: '/cookie-policy/' },
   { label: 'RSS', href: '/rss.xml' },
 ];
 

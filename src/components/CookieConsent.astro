@@ -1,0 +1,390 @@
+---
+/**
+ * Cookie consent bar, wired to Google Consent Mode v2.
+ *
+ * Not decoration. An audit of the live site found GA4 and Google Ads setting
+ * _ga, _ga_*, and _gcl_au and firing a pageview the moment a page loaded, with
+ * nothing asked of the visitor. GoogleTagManager.astro now declares every
+ * storage type denied by default; this component is the only thing that can
+ * lift that, and it does so by pushing a `consent update` rather than by
+ * loading or blocking scripts itself.
+ *
+ * Deliberately no third-party CMP: one would be another render-blocking
+ * script on a site that self-hosts its fonts to avoid exactly that.
+ *
+ * Rendered hidden and revealed by script, so a visitor who has already
+ * answered never sees it flash.
+ */
+---
+
+<div
+  id="cc"
+  class="cc"
+  role="dialog"
+  aria-modal="false"
+  aria-label="Cookie choices"
+  aria-live="polite"
+  hidden
+>
+  <div class="cc-bar">
+    <p class="cc-copy">
+      <strong>We use cookies.</strong> To measure our audience and personalise advertising.
+      You can accept, decline or manage your choices. See our <a href="/cookie-policy/"
+        >Cookie Policy</a
+      >.
+    </p>
+
+    <div class="cc-actions">
+      <button type="button" class="cc-manage" data-cc="manage" aria-expanded="false" aria-controls="cc-panel">
+        Manage
+      </button>
+      <button type="button" class="cc-btn cc-decline" data-cc="decline">Decline</button>
+      <button type="button" class="cc-btn cc-accept" data-cc="accept">Accept</button>
+    </div>
+  </div>
+
+  <div class="cc-panel" id="cc-panel" hidden>
+    <fieldset class="cc-group">
+      <legend class="sr-only">Cookie categories</legend>
+
+      <label class="cc-row cc-row--locked">
+        <input type="checkbox" checked disabled />
+        <span>
+          <b>Strictly necessary</b>
+          <em>Required for the site to work. Always on, and never used to track you.</em>
+        </span>
+      </label>
+
+      <label class="cc-row">
+        <input type="checkbox" data-cc-toggle="analytics" />
+        <span>
+          <b>Analytics</b>
+          <em>How many people read what, so we know which articles are worth writing.</em>
+        </span>
+      </label>
+
+      <label class="cc-row">
+        <input type="checkbox" data-cc-toggle="ads" />
+        <span>
+          <b>Advertising</b>
+          <em>Lets advertisers measure results and personalise what you are shown.</em>
+        </span>
+      </label>
+    </fieldset>
+
+    <div class="cc-panel-actions">
+      <button type="button" class="cc-btn cc-save" data-cc="save">Save choices</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Bundled, not inline, so TypeScript checks it. The consent *defaults* are
+  // inline in GoogleTagManager.astro because they must beat gtm.js to the
+  // punch; by the time this runs the tags are already holding.
+  type Choice = { v: 1; analytics: boolean; ads: boolean; at: string };
+
+  const KEY = 'critvolt.consent';
+  const root = document.getElementById('cc');
+  if (root) {
+    const panel = document.getElementById('cc-panel');
+    const manageBtn = root.querySelector<HTMLButtonElement>('[data-cc="manage"]');
+    const toggles = root.querySelectorAll<HTMLInputElement>('[data-cc-toggle]');
+
+    const read = (): Choice | null => {
+      try {
+        const raw = localStorage.getItem(KEY);
+        const parsed = raw ? (JSON.parse(raw) as Choice) : null;
+        return parsed && parsed.v === 1 ? parsed : null;
+      } catch {
+        // Private mode, or storage blocked. Treat as "never answered": the
+        // banner shows again, which is the safe direction to fail in.
+        return null;
+      }
+    };
+
+    /**
+     * Push the decision to Google.
+     *
+     * ad_user_data and ad_personalization are the two signals Consent Mode v2
+     * added and are what Google actually checks for EEA traffic; sending only
+     * ad_storage is the common way to look compliant while not being it.
+     */
+    const apply = (analytics: boolean, ads: boolean) => {
+      const g = (b: boolean) => (b ? 'granted' : 'denied');
+      const w = window as unknown as { dataLayer?: unknown[] };
+      w.dataLayer = w.dataLayer || [];
+      // Mirrors the inline gtag() shim: consent calls must arrive as an
+      // `arguments` object, so pushing a plain array is not equivalent.
+      w.dataLayer.push(
+        (function (...args: unknown[]) {
+          return args;
+        })('consent', 'update', {
+          ad_storage: g(ads),
+          ad_user_data: g(ads),
+          ad_personalization: g(ads),
+          analytics_storage: g(analytics),
+          functionality_storage: g(analytics),
+          personalization_storage: g(ads),
+        }),
+      );
+      w.dataLayer.push({ event: 'consent_choice', consent_analytics: analytics, consent_ads: ads });
+    };
+
+    const save = (analytics: boolean, ads: boolean) => {
+      const choice: Choice = { v: 1, analytics, ads, at: new Date().toISOString() };
+      try {
+        localStorage.setItem(KEY, JSON.stringify(choice));
+      } catch {
+        // Choice still applies to this page view even if it cannot persist.
+      }
+      apply(analytics, ads);
+      root.hidden = true;
+    };
+
+    root.addEventListener('click', (event) => {
+      const btn = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-cc]');
+      if (!btn) return;
+
+      switch (btn.dataset.cc) {
+        case 'accept':
+          save(true, true);
+          break;
+        case 'decline':
+          save(false, false);
+          break;
+        case 'manage': {
+          const open = panel?.hidden === false;
+          if (panel) panel.hidden = open;
+          manageBtn?.setAttribute('aria-expanded', String(!open));
+          break;
+        }
+        case 'save': {
+          const picked = { analytics: false, ads: false };
+          for (const t of toggles) {
+            const name = t.dataset.ccToggle as 'analytics' | 'ads';
+            picked[name] = t.checked;
+          }
+          save(picked.analytics, picked.ads);
+          break;
+        }
+      }
+    });
+
+    // Let any page offer a "change your cookie choices" link.
+    document.addEventListener('click', (event) => {
+      const trigger = (event.target as HTMLElement).closest('[data-cc-reopen]');
+      if (!trigger) return;
+      event.preventDefault();
+      const prev = read();
+      for (const t of toggles) {
+        const name = t.dataset.ccToggle as 'analytics' | 'ads';
+        t.checked = prev ? prev[name] : false;
+      }
+      if (panel) panel.hidden = false;
+      manageBtn?.setAttribute('aria-expanded', 'true');
+      root.hidden = false;
+    });
+
+    // Only ask people who have not answered. The stored answer was already
+    // replayed to Google by the inline script in the head.
+    if (!read()) root.hidden = false;
+  }
+</script>
+
+<style>
+  .cc {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 90;
+    background: var(--bg-elev);
+    border-top: 1px solid var(--border);
+    /* The bar covers content while it is up, so it gets a real shadow rather
+       than sitting flush and reading as part of the page. */
+    box-shadow: 0 -18px 40px rgba(0, 0, 0, 0.55);
+  }
+  .cc[hidden] {
+    display: none;
+  }
+
+  .cc-bar {
+    max-width: var(--max, 1280px);
+    margin: 0 auto;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .cc-copy {
+    margin: 0;
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 0.86rem;
+    line-height: 1.5;
+    color: var(--muted);
+  }
+  .cc-copy strong {
+    color: var(--text);
+    font-weight: 700;
+  }
+  .cc-copy a {
+    color: var(--lime);
+    font-weight: 600;
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+  }
+  .cc-copy a:hover {
+    border-bottom-color: var(--lime);
+  }
+
+  .cc-actions {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .cc-btn,
+  .cc-manage {
+    font-family: var(--font-display);
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    cursor: pointer;
+    border: 1px solid transparent;
+    border-radius: var(--radius);
+    transition:
+      background 0.2s var(--ease),
+      color 0.2s var(--ease),
+      border-color 0.2s var(--ease);
+  }
+
+  /* Text-only, and quieter than the two real buttons: managing is the path
+     for people who want it, not the one being nudged. */
+  .cc-manage {
+    background: none;
+    color: var(--muted);
+    padding: 9px 6px;
+  }
+  .cc-manage:hover {
+    color: var(--text);
+  }
+
+  .cc-btn {
+    padding: 9px 20px;
+  }
+
+  /* Decline is a real, equally reachable button. A greyed-out or hidden
+     refusal is the thing regulators actually fine sites for. */
+  .cc-decline {
+    background: var(--surface);
+    border-color: var(--border);
+    color: var(--text);
+  }
+  .cc-decline:hover {
+    border-color: var(--muted);
+  }
+
+  .cc-accept {
+    background: var(--lime);
+    color: var(--lime-ink);
+  }
+  .cc-accept:hover {
+    background: var(--lime-hi);
+    box-shadow: 0 0 22px rgba(126, 200, 0, 0.4);
+  }
+
+  /* ---------- manage panel ---------- */
+  .cc-panel {
+    max-width: var(--max, 1280px);
+    margin: 0 auto;
+    padding: 4px 20px 18px;
+    border-top: 1px solid var(--border-soft);
+  }
+  .cc-panel[hidden] {
+    display: none;
+  }
+
+  .cc-group {
+    border: 0;
+    margin: 0;
+    padding: 14px 0 0;
+    display: grid;
+    gap: 12px;
+  }
+
+  .cc-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    cursor: pointer;
+    font-size: 0.86rem;
+  }
+  .cc-row--locked {
+    cursor: default;
+    opacity: 0.72;
+  }
+  .cc-row input {
+    margin-top: 2px;
+    width: 16px;
+    height: 16px;
+    accent-color: var(--lime);
+    flex: 0 0 auto;
+  }
+  .cc-row b {
+    display: block;
+    color: var(--text);
+    font-weight: 600;
+  }
+  .cc-row em {
+    display: block;
+    color: var(--muted);
+    font-style: normal;
+    line-height: 1.5;
+  }
+
+  .cc-panel-actions {
+    margin-top: 16px;
+  }
+  .cc-save {
+    background: var(--surface);
+    border-color: var(--border);
+    color: var(--text);
+  }
+  .cc-save:hover {
+    border-color: var(--lime);
+    color: var(--lime);
+  }
+
+  /* On a phone the bar would eat the screen, so the copy stacks above
+     full-width actions instead of squeezing into one line. */
+  @media (max-width: 860px) {
+    .cc-bar {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 14px;
+      padding: 16px;
+    }
+    .cc-actions {
+      display: grid;
+      grid-template-columns: auto 1fr 1fr;
+      gap: 8px;
+    }
+    /* 44px is the minimum comfortable touch target; the desktop padding left
+       Manage at 41. Refusing must not be fiddlier than accepting. */
+    .cc-btn,
+    .cc-manage {
+      min-height: 44px;
+      padding: 11px 14px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cc-btn,
+    .cc-manage {
+      transition: none;
+    }
+  }
+</style>

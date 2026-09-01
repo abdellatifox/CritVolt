@@ -1,0 +1,166 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../consts';
+
+/**
+ * The destination for the consent bar's "Cookie Policy" link.
+ *
+ * Written from what the site actually loads, verified by auditing the live
+ * pages: GA4 (G-JQ7BB4L4EJ) and Google Ads (AW-18419712106) through GTM. If a
+ * tag is added or removed in the GTM container, the table below is what needs
+ * updating with it - a policy listing cookies the site does not set, or
+ * missing ones it does, is worse than none.
+ */
+---
+
+<BaseLayout
+  title="Cookie Policy"
+  description={`Which cookies ${SITE.name} sets, what each one does, and how to change or withdraw your choice at any time.`}
+>
+  <div class="wrap page">
+    <h1>Cookie Policy</h1>
+
+    <div class="prose">
+      <p>
+        <strong>Nothing that tracks you runs until you say yes.</strong> Analytics and
+        advertising cookies are switched off by default. They are only set if you choose
+        Accept, or enable that category under Manage.
+      </p>
+
+      <h2>What a cookie is here</h2>
+      <p>
+        A small file a site stores in your browser. Some are needed for the site to work
+        at all; others record what you read so we can measure our audience, or let
+        advertisers see whether an ad led anywhere.
+      </p>
+
+      <h2>Categories</h2>
+
+      <h3>Strictly necessary — always on</h3>
+      <p>
+        These are not used to identify or track you, so they do not need consent. The only
+        thing {SITE.name} stores in this category is your cookie choice itself, in your
+        browser's local storage under <code>critvolt.consent</code>, so we do not ask
+        again on every page.
+      </p>
+
+      <h3>Analytics — off until you allow it</h3>
+      <p>
+        Google Analytics 4, loaded through Google Tag Manager. It tells us how many people
+        read an article and which ones, which is how we decide what to write next. We do
+        not use it to identify individuals.
+      </p>
+
+      <h3>Advertising — off until you allow it</h3>
+      <p>
+        Google Ads. Lets advertisers measure whether an ad worked and personalise what you
+        are shown. Declining does not remove advertising; it means what you see is not
+        personalised using these cookies.
+      </p>
+
+      <h2>The cookies themselves</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Set by</th>
+              <th>Category</th>
+              <th>Purpose</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>critvolt.consent</code></td>
+              <td>{SITE.name}</td>
+              <td>Necessary</td>
+              <td>Remembers your choice on this bar. Local storage, not sent anywhere.</td>
+            </tr>
+            <tr>
+              <td><code>_ga</code></td>
+              <td>Google Analytics</td>
+              <td>Analytics</td>
+              <td>Distinguishes one browser from another so visits are not double-counted.</td>
+            </tr>
+            <tr>
+              <td><code>_ga_JQ7BB4L4EJ</code></td>
+              <td>Google Analytics</td>
+              <td>Analytics</td>
+              <td>Keeps session state for this property.</td>
+            </tr>
+            <tr>
+              <td><code>_gcl_au</code></td>
+              <td>Google Ads</td>
+              <td>Advertising</td>
+              <td>Attributes a later action back to an ad you clicked.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">
+        Google may set further cookies once advertising is allowed. Their current list is
+        maintained at <a
+          href="https://business.safety.google/adscookies/"
+          rel="noopener nofollow"
+          target="_blank">business.safety.google/adscookies</a
+        >.
+      </p>
+
+      <h2>Changing your mind</h2>
+      <p>
+        <a href="#" data-cc-reopen>Reopen your cookie choices</a> at any time. Withdrawing
+        consent is as easy as giving it, and takes effect immediately — though cookies
+        already set are removed by your browser, not by us. You can clear them for this
+        site in your browser's settings.
+      </p>
+
+      <h2>Do Not Track and browser controls</h2>
+      <p>
+        Every browser can block or delete cookies, and blocking the ones above will not
+        break anything on this site. If you block them at the browser level, our bar has
+        nothing left to switch on.
+      </p>
+
+      <h2>Questions</h2>
+      <p>
+        See the <a href="/affiliate-disclosure/">Affiliate Disclosure</a> for how the site
+        earns money, and <a href="/about/">About</a> for who runs it.
+      </p>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .table-wrap {
+    overflow-x: auto;
+    margin: 1.2rem 0;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    min-width: 640px;
+  }
+  th,
+  td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border-soft);
+    vertical-align: top;
+  }
+  th {
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 0.78rem;
+    color: var(--muted);
+    border-bottom-color: var(--border);
+  }
+  td code {
+    white-space: nowrap;
+  }
+  .note {
+    font-size: 0.86rem;
+    color: var(--muted);
+  }
+</style>

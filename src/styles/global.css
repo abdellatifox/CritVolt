@@ -48,6 +48,13 @@
      azure and violet spread across the cool half opposite it. Nothing lands
      in the 340-20 degree band, which is reserved for the red alone - that is
      the rule the old magenta broke. */
+  /* Commerce lime. Distinct from the category jade on purpose: this one means
+     "an action that costs money or grants permission", and it is the only
+     green allowed outside the category system. */
+  --lime: #7ec800;
+  --lime-hi: #95e000;
+  --lime-ink: #0d0d12;
+
   --cat-guides: #2fd6a0;  /* jade   */
   --cat-news: #f0a72b;    /* amber  */
   --cat-reviews: #9d7bf5; /* violet */
@@ -519,8 +526,8 @@ h1, h2, h3, h4 {
    renders as plain bold text. */
 .btn--primary { background: var(--accent); color: var(--accent-ink); }
 .btn--primary:hover { background: var(--accent-soft); box-shadow: 0 0 26px var(--accent-glow); }
-.btn--buy { background: #7ec800; color: #0d0d12; }
-.btn--buy:hover { background: #95e000; box-shadow: 0 0 22px rgba(126, 200, 0, 0.45); }
+.btn--buy { background: var(--lime); color: var(--lime-ink); }
+.btn--buy:hover { background: var(--lime-hi); box-shadow: 0 0 22px rgba(126, 200, 0, 0.45); }
 .btn--ghost {
   background: transparent;
   border-color: var(--border);

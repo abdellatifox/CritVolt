@@ -35,6 +35,25 @@ const valid = typeof id === 'string' && /^GTM-[A-Z0-9]+$/.test(id);
     <>
       <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin />
       {/*
+        Consent Mode v2 defaults. This has to run BEFORE the loader below:
+        anything Google sets before a default is declared has already been set,
+        and an audit of the live site found GA4 and Ads writing _ga, _gcl_au and
+        firing a pageview on load with no consent asked for at all.
+
+        Everything that can be denied starts denied, so a visitor who never
+        answers is treated as a refusal rather than an acceptance.
+        security_storage stays granted because it covers fraud prevention, not
+        tracking. wait_for_update gives the banner script a moment to restore a
+        previous answer before tags decide, which stops a returning visitor's
+        first pageview being dropped.
+      */}
+      <script
+        is:inline
+        set:html={`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
+gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied',functionality_storage:'denied',personalization_storage:'denied',security_storage:'granted',wait_for_update:500});
+try{var c=JSON.parse(localStorage.getItem('critvolt.consent')||'null');if(c&&c.v===1){var g=function(b){return b?'granted':'denied'};gtag('consent','update',{ad_storage:g(c.ads),ad_user_data:g(c.ads),ad_personalization:g(c.ads),analytics_storage:g(c.analytics),functionality_storage:g(c.analytics),personalization_storage:g(c.ads)});}}catch(e){}`}
+      />
+      {/*
         Google's canonical snippet, kept verbatim and inline. It has to run
         before any other script so window.dataLayer exists to push to, which
         rules out letting the bundler move or defer it.

@@ -7,6 +7,7 @@ import SearchOverlay from '../components/SearchOverlay.astro';
 import { SITE, GTM_ID } from '../consts';
 import { CDN_BASE, CDN_IS_REMOTE } from '../lib/cdn';
 import GoogleTagManager from '../components/GoogleTagManager.astro';
+import CookieConsent from '../components/CookieConsent.astro';
 
 /**
  * Every page renders through this. It owns the <head>, which means SEO can
@@ -162,5 +163,6 @@ const fullTitle = title === SITE.name ? `${SITE.name} — ${SITE.tagline}` : `${
     </main>
     <Footer />
     <SearchOverlay />
+    <CookieConsent />
   </body>
 </html>
