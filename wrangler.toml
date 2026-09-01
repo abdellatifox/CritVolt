@@ -14,22 +14,16 @@ compatibility_date = "2026-08-31"
 compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = "./dist"
 
-# Project variables, registered with Cloudflare on every deploy and visible in
-# the dashboard under "Variables and secrets".
+# There is deliberately no [vars] block here.
 #
-# Both are PUBLIC_ values that Astro bakes into the shipped HTML, so neither is
-# a secret and both are safe to keep in the repo. Declaring them here rather
-# than typing them into the dashboard keeps one reviewable source: a value
-# changed by hand in a web form is invisible from the code.
+# A [vars] block is applied to the project on every deploy, which makes it the
+# owner of the variable list - and a variable someone edits in the dashboard
+# would be reverted, or dropped, the next time this file is deployed. GTM_ID is
+# meant to be editable in "Variables and secrets" without a commit, so nothing
+# in this repo may claim ownership of the variable list.
 #
-# Note what these are and are not. These are *runtime* variables for the
-# Worker. The HTML is generated at BUILD time, where the values come from
-# .env.production - so this block is the registration and the audit trail, not
-# what bakes the GTM tag into the page. Both are kept identical deliberately,
-# and scripts/perf-check.mjs fails the build if they ever disagree.
-[vars]
-PUBLIC_CDN_URL = "https://pub-29b2020ad2a44fcfb6073ca4a9925842.r2.dev"
-PUBLIC_GTM_ID = "GTM-5CFPSSGW"
+# Build-time values that DO belong to the repo live in .env.production instead,
+# where they configure the build without touching the project's settings.
 
 # Editorial catalogue (mirrored from src/content at build time) plus the
 # runtime tables: newsletter subscribers and page-view rollups.

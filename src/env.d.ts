@@ -27,10 +27,19 @@ interface ImportMetaEnv {
   /** Public base URL for /img/ assets. Empty means serve from this origin. */
   readonly PUBLIC_CDN_URL: string;
   readonly PUBLIC_NEWSLETTER_ACTION: string;
-  /** GTM container ID. Empty ships no analytics. */
-  readonly PUBLIC_GTM_ID: string;
 }
 
 interface ImportMeta {
   readonly env: ImportMetaEnv;
+}
+
+declare namespace NodeJS {
+  interface ProcessEnv {
+    /**
+     * GTM container id, supplied by the Cloudflare Pages dashboard at build
+     * time. Read through process.env because it has no PUBLIC_ prefix, so Vite
+     * does not surface it on import.meta.env.
+     */
+    GTM_ID?: string;
+  }
 }

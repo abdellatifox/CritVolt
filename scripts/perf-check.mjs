@@ -285,17 +285,19 @@ async function main() {
   //    can see from the repo can replace the container ID, or blank it, with
   //    no error anywhere. GTM failing is invisible by design: the page still
   //    renders perfectly, it just stops measuring.
-  const gtmEnv = (process.env.PUBLIC_GTM_ID ?? '').trim();
+  //    GTM_ID is owned by the Cloudflare dashboard, not by this repo, so there
+  //    is no committed value to compare against - only the environment the
+  //    build actually ran with.
+  const gtmEnv = (process.env.GTM_ID ?? '').trim();
   const home = join(DIST, 'index.html');
 
   if (existsSync(home)) {
     const html = readFileSync(home, 'utf8');
-    const inPage = [...html.matchAll(/GTM-[A-Z0-9]+/g)].map((m) => m[0]);
-    const unique = [...new Set(inPage)];
+    const unique = [...new Set([...html.matchAll(/GTM-[A-Z0-9]+/g)].map((m) => m[0]))];
 
     if (gtmEnv) {
       if (!/^GTM-[A-Z0-9]+$/.test(gtmEnv)) {
-        fail('PUBLIC_GTM_ID is malformed', `"${gtmEnv}" is not a GTM container ID`);
+        fail('GTM_ID is malformed', `"${gtmEnv}" is not a GTM container ID`);
       } else if (!unique.length) {
         fail('GTM configured but absent from the build', `expected ${gtmEnv} in index.html`);
       } else if (unique.length > 1 || unique[0] !== gtmEnv) {
@@ -306,19 +308,17 @@ async function main() {
       } else {
         gtmChecked = gtmEnv;
       }
-
-      // Divergence between the committed file and whatever actually built is
-      // not automatically wrong - a dashboard override is a legitimate way to
-      // change it - but it must never pass unremarked.
-      const committed = readCommittedEnv('PUBLIC_GTM_ID');
-      if (committed && committed !== gtmEnv) {
-        notes.push(
-          `PUBLIC_GTM_ID differs from .env.production (file=${committed}, effective=${gtmEnv}) — ` +
-            'an environment override is in play',
-        );
-      }
     } else if (unique.length) {
-      fail('GTM in the build with no PUBLIC_GTM_ID set', unique.join(', '));
+      fail('GTM in the build with no GTM_ID set', unique.join(', '));
+    } else {
+      // Not an error - a local build legitimately ships no analytics. But it
+      // is the one outcome that looks identical to success, so it gets said
+      // out loud: a production deploy built without GTM_ID would drop
+      // analytics with nothing anywhere to notice.
+      notes.push(
+        'no GTM_ID in this build environment — the output ships without analytics. ' +
+          'Fine locally; on a production deploy it means the dashboard variable was not applied.',
+      );
     }
   }
 

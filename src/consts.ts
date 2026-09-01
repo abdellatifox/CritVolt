@@ -115,11 +115,23 @@ export const NEWSLETTER_IS_LOCAL: boolean = NEWSLETTER_ACTION === '/api/subscrib
 /**
  * Google Tag Manager container ID.
  *
- * Empty means no tag manager and no third-party request at all, which is the
- * right default for local development and preview builds - analytics should be
- * something production opts into, not something every build drags along.
+ * Owned by the Cloudflare Pages dashboard, deliberately not by this repo. It
+ * is read from the build environment, so changing it is an edit in
+ * "Variables and secrets" and a redeploy - no code change, no commit.
  *
- * PUBLIC_ because it is injected into the page and readable by anyone. It is a
+ * Read through `process.env` rather than `import.meta.env` because it carries
+ * no PUBLIC_ prefix, and Vite only exposes prefixed variables to
+ * `import.meta.env`. Every page that renders this layout is prerendered, so
+ * this runs in Node at build time where `process` exists; the guard covers the
+ * Workers runtime, which has no `process`.
+ *
+ * Empty means no tag manager and no third-party request at all - the right
+ * default for local development, and a safe failure mode rather than a broken
+ * page if the variable is ever missing.
+ *
+ * Note this hides the ID from the *repository*, not from visitors: it is
+ * injected into the HTML, so anyone viewing source can read it. It is a
  * container ID, not a credential.
  */
-export const GTM_ID: string = import.meta.env.PUBLIC_GTM_ID ?? '';
+export const GTM_ID: string =
+  (typeof process !== 'undefined' ? process.env?.GTM_ID : '') ?? '';
